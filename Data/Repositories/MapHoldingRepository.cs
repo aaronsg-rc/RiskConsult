@@ -1,19 +1,23 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using RiskConsult.Enumerators;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
 
+/// <summary> Repositorio de la entidad tblMAP_Holdings </summary>
 public interface IMapHoldingRepository : IRepository<IMapHoldingEntity>
 {
+	/// <summary> Obtiene la entidad de un holding en base al ID y tipo de ID </summary>
 	IMapHoldingEntity? GetHoldingEntity( string holdingId, HoldingIdType idType );
 
+	/// <summary> Obtiene el último ID disponible en base de datos </summary>
+	/// <returns> Último ID disponible </returns>
 	int GetNextId();
 }
 
 internal class MapHoldingRepository( IUnitOfWork unitOfWork ) : DbRepository<IMapHoldingEntity>( unitOfWork ), IMapHoldingRepository
 {
+	/// <summary> Propiedades de la entidad </summary>
 	public override IPropertyMap[] Properties { get; } =
 	[
 		new PropertyMap<MapHoldingEntity>( nameof( MapHoldingEntity.InitialDate ), "dteStart", 0, true ),
@@ -23,19 +27,18 @@ internal class MapHoldingRepository( IUnitOfWork unitOfWork ) : DbRepository<IMa
 		new PropertyMap<MapHoldingEntity>( nameof( MapHoldingEntity.Description ), "txtHoldingDescription", 4, false )
 	];
 
+	/// <summary> Nombre de la tabla </summary>
 	public override string TableName { get; } = "tblMAP_Holdings";
 
 	public IMapHoldingEntity? GetHoldingEntity( string holdingId, HoldingIdType idType )
 	{
-		if ( idType is HoldingIdType.Ticker2 or HoldingIdType.Invalid or HoldingIdType.ISIN )
+		var fieldName = idType switch
 		{
-			return null;
-		}
-
-		var fieldName =
-			idType is HoldingIdType.Description ? "txtHoldingDescription" :
-			idType == HoldingIdType.Ticker ? "txtHoldingName" :
-			"intholdingId";
+			HoldingIdType.Description => "txtHoldingDescription",
+			HoldingIdType.Ticker => "txtHoldingName",
+			HoldingIdType.HoldingId => "intHoldingId",
+			_ => throw new ArgumentOutOfRangeException( nameof( idType ), idType, null )
+		};
 
 		using IDbCommand command = UnitOfWork.CreateCommand();
 		command.CommandText = $"SELECT * FROM {TableName} WHERE {fieldName} = @id";
@@ -44,17 +47,15 @@ internal class MapHoldingRepository( IUnitOfWork unitOfWork ) : DbRepository<IMa
 		param.Value = holdingId;
 		command.Parameters.Add( param );
 
-		return UnitOfWork.GetCommandEntity<MapHoldingEntity>( command, Properties );
+		return command.GetEntity<MapHoldingEntity>( Properties );
 	}
 
-	/// <summary> Obtiene el último ID disponible en base de datos </summary>
-	/// <returns> Último ID disponible </returns>
 	public int GetNextId()
 	{
 		using IDbCommand command = UnitOfWork.CreateCommand();
 		command.CommandText = $"SELECT TOP 1 * FROM {TableName} ORDER BY intholdingId DESC";
 
-		MapHoldingEntity? entity = UnitOfWork.GetCommandEntity<MapHoldingEntity>( command, Properties );
+		MapHoldingEntity? entity = command.GetEntity<MapHoldingEntity>( Properties );
 
 		return entity == null ? 2000000 : entity.HoldingId + 1;
 	}

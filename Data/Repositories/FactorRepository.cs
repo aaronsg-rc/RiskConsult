@@ -1,8 +1,10 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
+
+public interface IFactorCumulativeRepository : IFactorRepository
+{ }
 
 public interface IFactorRepository : IRepository<IFactorEntity>
 {
@@ -13,9 +15,6 @@ public interface IFactorReturnRepository : IFactorRepository
 { }
 
 public interface IFactorValueRepository : IFactorRepository
-{ }
-
-public interface IFactorCumulativeRepository : IFactorRepository
 { }
 
 internal class FactorRepository( IUnitOfWork unitOfWork, string tableName ) : DbRepository<IFactorEntity>( unitOfWork ), IFactorReturnRepository, IFactorValueRepository, IFactorCumulativeRepository
@@ -50,6 +49,6 @@ internal class FactorRepository( IUnitOfWork unitOfWork, string tableName ) : Db
 		dateParam.Value = date;
 		command.Parameters.Add( dateParam );
 
-		return _cache[ date ] = UnitOfWork.GetCommandEntities<FactorEntity>( command, Properties );
+		return _cache[ date ] = command.GetEntities<FactorEntity>( Properties );
 	}
 }

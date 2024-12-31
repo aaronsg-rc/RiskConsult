@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
@@ -26,6 +25,6 @@ internal class HoldingEventRepository( IUnitOfWork unitOfWork ) : DbRepository<I
 		using IDbCommand command = UnitOfWork.CreateCommand();
 		command.CommandText = $"SELECT {string.Join( ',', Properties.Select( p => p.ColumnName ) )} FROM {TableName} WHERE intID = {holdingId};";
 
-		return UnitOfWork.GetCommandEntities<HoldingEventEntity>( command, Properties );
+		return command.GetEntities<HoldingEventEntity>( Properties );
 	}
 }

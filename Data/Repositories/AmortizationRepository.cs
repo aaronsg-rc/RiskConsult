@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
@@ -28,6 +27,6 @@ internal class AmortizationRepository( IUnitOfWork unitOfWork ) : DbRepository<I
 		using IDbCommand command = UnitOfWork.CreateCommand();
 		command.CommandText = $"SELECT intID, dteDate, dblAmortization FROM {TableName} WHERE intID = {holdingId}";
 
-		return UnitOfWork.GetCommandEntities<AmortizationEntity>( command, Properties );
+		return command.GetEntities<AmortizationEntity>( Properties );
 	}
 }

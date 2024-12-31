@@ -37,7 +37,7 @@ public static class EnumExtensions
 		return idType switch
 		{
 			ZeusIdType.ZeusId => "Z",
-			ZeusIdType.Ticker => "T",
+			ZeusIdType.Ticker => "TEntity",
 			ZeusIdType.Ticker2 => "Ticker2",
 			_ => throw new NotImplementedException()
 		};

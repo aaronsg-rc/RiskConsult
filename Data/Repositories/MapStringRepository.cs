@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
@@ -51,7 +50,7 @@ internal class MapStringRepository( IUnitOfWork unitOfWork ) : DbRepository<IMap
 		param.Value = groupID;
 		command.Parameters.Add( param );
 
-		UnitOfWork.ExecuteNonQuery( command );
+		command.ExecuteNonQuery();
 	}
 
 	public void Delete( string groupID, string name )
@@ -69,7 +68,7 @@ internal class MapStringRepository( IUnitOfWork unitOfWork ) : DbRepository<IMap
 		nameParam.Value = name;
 		command.Parameters.Add( nameParam );
 
-		UnitOfWork.ExecuteNonQuery( command );
+		command.ExecuteNonQuery();
 	}
 
 	public IMapStringEntity[] GetGroupEntities( string groupID )
@@ -82,7 +81,7 @@ internal class MapStringRepository( IUnitOfWork unitOfWork ) : DbRepository<IMap
 		groupParam.Value = groupID;
 		command.Parameters.Add( groupParam );
 
-		return UnitOfWork.GetCommandEntities<MapStringEntity>( command, Properties );
+		return command.GetEntities<MapStringEntity>( Properties );
 	}
 
 	public IMapStringEntity? GetGroupEntity( string groupID, string nameOrDescription )
@@ -100,7 +99,7 @@ internal class MapStringRepository( IUnitOfWork unitOfWork ) : DbRepository<IMap
 		nameParam.Value = nameOrDescription;
 		command.Parameters.Add( nameParam );
 
-		return UnitOfWork.GetCommandEntity<MapStringEntity>( command, Properties );
+		return command.GetEntity<MapStringEntity>( Properties );
 	}
 
 	public IMapStringEntity? GetGroupEntity( string groupID, int id )
@@ -113,7 +112,7 @@ internal class MapStringRepository( IUnitOfWork unitOfWork ) : DbRepository<IMap
 		groupParam.Value = groupID;
 		command.Parameters.Add( groupParam );
 
-		return UnitOfWork.GetCommandEntity<MapStringEntity>( command, Properties );
+		return command.GetEntity<MapStringEntity>( Properties );
 	}
 
 	public int GetNextId( string groupID )
@@ -126,7 +125,7 @@ internal class MapStringRepository( IUnitOfWork unitOfWork ) : DbRepository<IMap
 		groupParam.Value = groupID;
 		command.Parameters.Add( groupParam );
 
-		MapStringEntity? entity = UnitOfWork.GetCommandEntity<MapStringEntity>( command, Properties );
+		MapStringEntity? entity = command.GetEntity<MapStringEntity>( Properties );
 		return entity == null ? 2000001 : entity.Id + 1;
 	}
 }

@@ -1,6 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-
-using RiskConsult.Data.Interfaces;
 using RiskConsult.Enumerators;
 using System.Data;
 
@@ -48,7 +46,7 @@ internal class TcHoldingRepository( IUnitOfWork unitOfWork ) : DbRepository<ITcH
 		using IDbCommand command = UnitOfWork.CreateCommand();
 		command.CommandText = $"SELECT {string.Join( ',', Properties.Select( p => p.ColumnName ) )} FROM {TableName} WHERE intSubTypeID = {subTypeId}";
 
-		return UnitOfWork.GetCommandEntities<TcHoldingEntity>( command, Properties );
+		return command.GetEntities<TcHoldingEntity>( Properties );
 	}
 
 	public ITcHoldingEntity? GetTcHoldingEntity( string holdingId, HoldingIdType idType )
@@ -72,6 +70,6 @@ internal class TcHoldingRepository( IUnitOfWork unitOfWork ) : DbRepository<ITcH
 		param.Value = holdingId;
 		command.Parameters.Add( param );
 
-		return UnitOfWork.GetCommandEntity<TcHoldingEntity>( command, Properties );
+		return command.GetEntity<TcHoldingEntity>( Properties );
 	}
 }

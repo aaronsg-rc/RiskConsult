@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
@@ -36,6 +35,6 @@ internal class ExposureRepository( IUnitOfWork unitOfWork ) : DbRepository<IExpo
 		paramDate.Value = date;
 		command.Parameters.Add( paramDate );
 
-		return UnitOfWork.GetCommandEntities<ExposureEntity>( command, Properties );
+		return command.GetEntities<ExposureEntity>( Properties );
 	}
 }

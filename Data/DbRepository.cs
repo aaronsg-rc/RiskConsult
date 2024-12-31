@@ -3,26 +3,46 @@ using System.Data;
 
 namespace RiskConsult.Data;
 
-public abstract class DbRepository<T>( IUnitOfWork unitOfWork ) : IRepository<T>, ITableMap
+public interface IRepository<TEntity>
 {
-	protected IUnitOfWork UnitOfWork { get; } = unitOfWork;
+	void Delete( params TEntity[] entities );
+
+	TImplementation[] GetAll<TImplementation>() where TImplementation : TEntity, new();
+
+	void Insert( params TEntity[] entities );
+
+	void Update( params TEntity[] entities );
+}
+
+internal abstract class DbRepository<TEntity> : IRepository<TEntity>, ITableMap
+{
+	protected readonly IUnitOfWork UnitOfWork;
+
 	public abstract IPropertyMap[] Properties { get; }
+
 	public abstract string TableName { get; }
 
-	public void Delete( params T[] entities )
+	public DbRepository( IUnitOfWork unitOfWork )
+	{
+		UnitOfWork = unitOfWork ?? throw new ArgumentNullException( nameof( unitOfWork ) );
+	}
+
+	public void Delete( params TEntity[] entities )
 	{
 		if ( entities.Length == 0 )
 		{
 			return;
 		}
 
+		IPropertyMap[] pkProps = Properties.Where( p => p.IsPrimaryKey ).ToArray();
+		var pkConditions = string.Join( " AND ", pkProps.Select( p => $"{p.ColumnName} = @{p.ColumnName}" ) );
+
 		try
 		{
-			var pkConditions = string.Join( " AND ", Properties
-				.Where( p => p.IsPrimaryKey )
-				.Select( p => $"{p.ColumnName} = @{p.ColumnName}" ) );
-
-			UnitOfWork.ExecuteCommandForEach( $"DELETE FROM {TableName} WHERE {pkConditions};", Properties, entities );
+			using IDbCommand command = UnitOfWork.CreateCommand();
+			command.CommandText = $"DELETE FROM {TableName} WHERE {pkConditions};";
+			command.AddParameters( pkProps );
+			command.ExecuteForEach( pkProps, entities );
 		}
 		catch ( Exception e )
 		{
@@ -30,35 +50,40 @@ public abstract class DbRepository<T>( IUnitOfWork unitOfWork ) : IRepository<T>
 		}
 	}
 
-	public K[] GetAll<K>() where K : T, new()
+	public TImplementation[] GetAll<TImplementation>() where TImplementation : TEntity, new()
 	{
-		try
-		{
-			var columns = string.Join( ", ", Properties.Select( p => p.ColumnName ) );
-			using IDbCommand command = UnitOfWork.CreateCommand();
-			command.CommandText = $"SELECT {columns} FROM {TableName};";
+		var properties = string.Join( ", ", Properties.Select( p => p.ColumnName ) );
 
-			return UnitOfWork.GetCommandEntities<K>( command, Properties );
-		}
-		catch ( Exception e )
+		using IDbCommand command = UnitOfWork.CreateCommand();
+		command.CommandText = $"SELECT {properties} FROM {TableName};";
+
+		using IDataReader reader = command.ExecuteReader();
+		var entities = new List<TImplementation>();
+		while ( reader.Read() )
 		{
-			throw new Exception( $"Error getting entities: {e.Message}", e );
+			TImplementation? entity = reader.GetEntity<TImplementation>( Properties );
+			entities.Add( entity );
 		}
+
+		return [ .. entities ];
 	}
 
-	public void Insert( params T[] entities )
+	public void Insert( params TEntity[] entities )
 	{
 		if ( entities.Length == 0 )
 		{
 			return;
 		}
 
+		var propNames = string.Join( ", ", Properties.Select( p => p.ColumnName ) );
+		var propParams = string.Join( ", ", Properties.Select( p => $"@{p.ColumnName}" ) );
+
 		try
 		{
-			var propNames = string.Join( ", ", Properties.Select( p => p.ColumnName ) );
-			var propParams = string.Join( ", ", Properties.Select( p => $"@{p.ColumnName}" ) );
-
-			UnitOfWork.ExecuteCommandForEach( $"INSERT INTO {TableName}({propNames}) VALUES ({propParams});", Properties, entities );
+			using IDbCommand command = UnitOfWork.CreateCommand();
+			command.CommandText = $"INSERT INTO {TableName}({propNames}) VALUES ({propParams});";
+			command.AddParameters( Properties );
+			command.ExecuteForEach( Properties, entities );
 		}
 		catch ( Exception e )
 		{
@@ -66,18 +91,22 @@ public abstract class DbRepository<T>( IUnitOfWork unitOfWork ) : IRepository<T>
 		}
 	}
 
-	public void Update( params T[] entities )
+	public void Update( params TEntity[] entities )
 	{
 		if ( entities.Length == 0 )
 		{
 			return;
 		}
 
+		var valuesToSet = string.Join( ", ", Properties.Where( p => p.IsPrimaryKey == false ).Select( p => $"{p.ColumnName} = @{p.ColumnName}" ) );
+		var pkConditions = string.Join( " AND ", Properties.Where( p => p.IsPrimaryKey ).Select( p => $"{p.ColumnName} = @{p.ColumnName}" ) );
+
 		try
 		{
-			var valuesToSet = string.Join( ", ", Properties.Where( p => p.IsPrimaryKey == false ).Select( p => $"{p.ColumnName} = @{p.ColumnName}" ) );
-			var pkConditions = string.Join( " AND ", Properties.Where( p => p.IsPrimaryKey ).Select( p => $"{p.ColumnName} = @{p.ColumnName}" ) );
-			UnitOfWork.ExecuteCommandForEach( $"UPDATE {TableName} SET {valuesToSet} WHERE {pkConditions};", Properties, entities );
+			using IDbCommand command = UnitOfWork.CreateCommand();
+			command.CommandText = $"UPDATE {TableName} SET {valuesToSet} WHERE {pkConditions};";
+			command.AddParameters( Properties );
+			command.ExecuteForEach( Properties, entities );
 		}
 		catch ( Exception e )
 		{

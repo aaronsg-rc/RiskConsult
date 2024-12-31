@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
@@ -34,6 +33,6 @@ internal class TermStructureRepository( IUnitOfWork unitOfWork ) : DbRepository<
 		dateParam.Value = date;
 		command.Parameters.Add( dateParam );
 
-		return UnitOfWork.GetCommandEntities<TermStructureEntity>( command, Properties );
+		return command.GetEntities<TermStructureEntity>( Properties );
 	}
 }

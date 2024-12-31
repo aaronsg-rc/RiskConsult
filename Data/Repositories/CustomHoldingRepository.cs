@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
@@ -28,7 +27,7 @@ internal class CustomHoldingRepository<T> : DbRepository<ICustomHoldingEntity<T>
 		using IDbCommand command = UnitOfWork.CreateCommand();
 		command.CommandText = $"SELECT * FROM {TableName} WHERE intID = {holdingId}";
 
-		return UnitOfWork.GetCommandEntities<CustomHoldingEntity<T>>( command, Properties );
+		return command.GetEntities<CustomHoldingEntity<T>>( Properties );
 	}
 
 	private static (string, string) GetPrefixAndSufix()

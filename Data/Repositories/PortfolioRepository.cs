@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
@@ -39,7 +38,7 @@ internal class PortfolioRepository( IUnitOfWork unitOfWork ) : DbRepository<IPor
 		portfolioParam.ParameterName = "@portfolio";
 		command.Parameters.Add( portfolioParam );
 
-		UnitOfWork.ExecuteNonQuery( command );
+		command.ExecuteNonQuery();
 	}
 
 	/// <summary> Obtiene una lista de entidades para el portafolio y fecha dada </summary>
@@ -61,6 +60,6 @@ internal class PortfolioRepository( IUnitOfWork unitOfWork ) : DbRepository<IPor
 		portfolioParam.ParameterName = "@portfolio";
 		command.Parameters.Add( portfolioParam );
 
-		return UnitOfWork.GetCommandEntities<PortfolioEntity>( command, Properties );
+		return command.GetEntities<PortfolioEntity>( Properties );
 	}
 }

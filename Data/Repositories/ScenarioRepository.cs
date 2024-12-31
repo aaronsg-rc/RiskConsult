@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
@@ -27,7 +26,7 @@ internal class ScenarioRepository( IUnitOfWork unitOfWork ) : DbRepository<IScen
 		using IDbCommand command = UnitOfWork.CreateCommand();
 		command.CommandText = $"DELETE FROM {TableName} WHERE intScenarioID = {scenarioId}";
 
-		UnitOfWork.ExecuteNonQuery( command );
+		command.ExecuteNonQuery();
 	}
 
 	public IScenarioEntity[] GetScenarioEntities( int scenarioId )
@@ -35,6 +34,6 @@ internal class ScenarioRepository( IUnitOfWork unitOfWork ) : DbRepository<IScen
 		using IDbCommand command = UnitOfWork.CreateCommand();
 		command.CommandText = $"SELECT * FROM {TableName} WHERE intScenarioID = {scenarioId}";
 
-		return UnitOfWork.GetCommandEntities<ScenarioEntity>( command, Properties );
+		return command.GetEntities<ScenarioEntity>( Properties );
 	}
 }

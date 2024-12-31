@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
@@ -25,6 +24,6 @@ internal class TcIntegerRepository( IUnitOfWork unitOfWork ) : DbRepository<ITcI
 		using IDbCommand command = UnitOfWork.CreateCommand();
 		command.CommandText = $"SELECT * FROM tblTC_Integer WHERE intGroupID = {groupId}";
 
-		return UnitOfWork.GetCommandEntities<TcIntegerEntity>( command, Properties );
+		return command.GetEntities<TcIntegerEntity>( Properties );
 	}
 }

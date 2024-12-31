@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
@@ -30,6 +29,6 @@ internal class PriceRepository( IUnitOfWork unitOfWork ) : DbRepository<IPriceEn
 		dateParam.ParameterName = "@date";
 		command.Parameters.Add( dateParam );
 
-		return UnitOfWork.GetCommandEntities<PriceEntity>( command, Properties );
+		return command.GetEntities<PriceEntity>( Properties );
 	}
 }

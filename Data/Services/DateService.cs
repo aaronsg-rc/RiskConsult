@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using RiskConsult.Data.Repositories;
 using System.Data;
 
@@ -158,7 +157,7 @@ internal class DateService( IBusinessDaysRepository businessRepository, IHoliday
 		using IDbCommand command = unitOfWork.CreateCommand();
 		command.CommandText = $"SELECT dteEndDate FROM tblDates";
 
-		DateRec? entity = unitOfWork.GetCommandEntity<DateRec>( command, [ new PropertyMap<DateRec>( nameof( DateRec.Date ), "dteEndDate" ) ] );
+		DateRec? entity = command.GetEntity<DateRec>( [ new PropertyMap<DateRec>( nameof( DateRec.Date ), "dteEndDate" ) ] );
 		return entity?.Date ?? DateTime.MaxValue;
 	}
 
@@ -167,7 +166,7 @@ internal class DateService( IBusinessDaysRepository businessRepository, IHoliday
 		using IDbCommand command = unitOfWork.CreateCommand();
 		command.CommandText = $"SELECT dteStartDate FROM tblDates";
 
-		DateRec? entity = unitOfWork.GetCommandEntity<DateRec>( command, [ new PropertyMap<DateRec>( nameof( DateRec.Date ), "dteStartDate" ) ] );
+		DateRec? entity = command.GetEntity<DateRec>( [ new PropertyMap<DateRec>( nameof( DateRec.Date ), "dteStartDate" ) ] );
 		return entity?.Date ?? DateTime.MinValue;
 	}
 

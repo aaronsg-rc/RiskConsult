@@ -1,5 +1,4 @@
 ﻿using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using System.Data;
 
 namespace RiskConsult.Data.Repositories;
@@ -35,6 +34,6 @@ internal class FloaterResetRepository( IUnitOfWork unitOfWork ) : DbRepository<I
 		using IDbCommand command = UnitOfWork.CreateCommand();
 		command.CommandText = $"SELECT dteDate, intID, dblReset FROM {TableName} WHERE intID = {holdingId}";
 
-		return _cache[ holdingId ] = UnitOfWork.GetCommandEntities<FloaterResetEntity>( command, Properties );
+		return _cache[ holdingId ] = command.GetEntities<FloaterResetEntity>( Properties );
 	}
 }
