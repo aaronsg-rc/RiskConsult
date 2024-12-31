@@ -37,7 +37,6 @@ internal class PortfolioRepository( IUnitOfWork unitOfWork ) : DbRepository<IPor
 		portfolioParam.Value = name;
 		portfolioParam.ParameterName = "@portfolio";
 		command.Parameters.Add( portfolioParam );
-
 		command.ExecuteNonQuery();
 	}
 

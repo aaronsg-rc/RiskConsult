@@ -19,28 +19,19 @@ public interface IFactorValueRepository : IFactorRepository
 
 internal class FactorRepository( IUnitOfWork unitOfWork, string tableName ) : DbRepository<IFactorEntity>( unitOfWork ), IFactorReturnRepository, IFactorValueRepository, IFactorCumulativeRepository
 {
-	private readonly Dictionary<DateTime, FactorEntity[]> _cache = [];
-
 	public override IPropertyMap[] Properties { get; } =
 	[
 		new PropertyMap<FactorEntity>( nameof( FactorEntity.Date ), "dteDate", 0, true ),
 		new PropertyMap<FactorEntity>( nameof( FactorEntity.FactorId ), "intID", 1, true ),
 		new PropertyMap<FactorEntity>( nameof( FactorEntity.Value ), "dblValue", 2, false )
 	];
-	public override string TableName { get; } = tableName;
 
-	/// <summary> Limpia datos almacenados en el cache </summary>
-	public void ClearCache() => _cache.Clear();
+	public override string TableName { get; } = tableName;
 
 	/// <summary> Obtiene las entidades de los factores para la fecha que se defina </summary>
 	/// <param name="date"> Fecha de los factores </param>
 	public IFactorEntity[] GetFactorEntities( DateTime date )
 	{
-		if ( _cache.TryGetValue( date, out FactorEntity[]? entities ) )
-		{
-			return entities;
-		}
-
 		using IDbCommand command = UnitOfWork.CreateCommand();
 		command.CommandText = $"SELECT * FROM {TableName} WHERE dteDate = @date";
 
@@ -49,6 +40,6 @@ internal class FactorRepository( IUnitOfWork unitOfWork, string tableName ) : Db
 		dateParam.Value = date;
 		command.Parameters.Add( dateParam );
 
-		return _cache[ date ] = command.GetEntities<FactorEntity>( Properties );
+		return command.GetEntities<FactorEntity>( Properties );
 	}
 }

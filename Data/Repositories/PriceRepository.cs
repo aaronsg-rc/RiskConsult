@@ -17,6 +17,7 @@ internal class PriceRepository( IUnitOfWork unitOfWork ) : DbRepository<IPriceEn
 		new  PropertyMap<PriceEntity>( nameof( PriceEntity.HoldingId ), "intID", 2, true ),
 		new  PropertyMap<PriceEntity>( nameof( PriceEntity.Value ), "dblQuote", 3, false )
 	];
+
 	public override string TableName { get; } = "tblDATA_Quotes";
 
 	public IPriceEntity[] GetPriceEntities( DateTime date, int sourceID )

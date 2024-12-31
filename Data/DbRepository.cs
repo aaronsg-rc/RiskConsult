@@ -16,7 +16,7 @@ public interface IRepository<TEntity>
 
 internal abstract class DbRepository<TEntity> : IRepository<TEntity>, ITableMap
 {
-	protected readonly IUnitOfWork UnitOfWork;
+	public readonly IUnitOfWork UnitOfWork;
 
 	public abstract IPropertyMap[] Properties { get; }
 

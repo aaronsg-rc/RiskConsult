@@ -9,7 +9,6 @@ public interface ICustomHoldingRepository<T> : IRepository<ICustomHoldingEntity<
 }
 
 internal class CustomHoldingRepository<T> : DbRepository<ICustomHoldingEntity<T>>, ICustomHoldingRepository<T>
-
 {
 	public override IPropertyMap[] Properties { get; }
 

@@ -55,10 +55,13 @@ internal class CustomHoldingService( IServiceProvider serviceProvider ) : ICusto
 			return null;
 		}
 
-		IHoldingTerms? terms =
-			idType == HoldingIdType.HoldingId ? _cache.GetValueOrDefault( Convert.ToInt32( holdingId ) ) :
-			idType == HoldingIdType.Ticker ? _cache.Values.FirstOrDefault( e => e.Ticker.Equals( holdingId, StringComparison.InvariantCultureIgnoreCase ) ) :
-			_cache.Values.FirstOrDefault( e => e.Ticker.Equals( holdingId, StringComparison.InvariantCultureIgnoreCase ) );
+		IHoldingTerms? terms = idType switch
+		{
+			HoldingIdType.HoldingId => _cache.GetValueOrDefault( Convert.ToInt32( holdingId ) ),
+			HoldingIdType.Ticker => _cache.Values.FirstOrDefault( e => e.Ticker.Equals( holdingId, StringComparison.InvariantCultureIgnoreCase ) ),
+			HoldingIdType.Description => _cache.Values.FirstOrDefault( e => e.Description.Equals( holdingId, StringComparison.InvariantCultureIgnoreCase ) ),
+			_ => null
+		};
 
 		if ( terms != null )
 		{

@@ -12,13 +12,14 @@ public interface IExposureRepository : IRepository<IExposureEntity>
 internal class ExposureRepository( IUnitOfWork unitOfWork ) : DbRepository<IExposureEntity>( unitOfWork ), IExposureRepository
 {
 	public override IPropertyMap[] Properties { get; } =
-		[
-			new PropertyMap<ExposureEntity>(nameof(ExposureEntity.Date ), "dteDate", 0, true ),
-			new PropertyMap<ExposureEntity>(nameof(ExposureEntity.ExposureId ), "intExposureID", 1, true ),
-			new PropertyMap<ExposureEntity>(nameof(ExposureEntity.HoldingId ), "intID", 2, true ),
-			new PropertyMap<ExposureEntity>(nameof(ExposureEntity.FactorId ), "intFactorId", 3, true ),
-			new PropertyMap<ExposureEntity>(nameof(ExposureEntity.Value ), "dblValue", 4, false )
-		];
+	[
+		new PropertyMap<ExposureEntity>(nameof(ExposureEntity.Date ), "dteDate", 0, true ),
+		new PropertyMap<ExposureEntity>(nameof(ExposureEntity.ExposureId ), "intExposureID", 1, true ),
+		new PropertyMap<ExposureEntity>(nameof(ExposureEntity.HoldingId ), "intID", 2, true ),
+		new PropertyMap<ExposureEntity>(nameof(ExposureEntity.FactorId ), "intFactorId", 3, true ),
+		new PropertyMap<ExposureEntity>(nameof(ExposureEntity.Value ), "dblValue", 4, false )
+	];
+
 	public override string TableName { get; } = "tblDATA_Exposures";
 
 	/// <summary> Obtiene una lista de entidades de exposiciones de un instrumento para una fecha dada </summary>
