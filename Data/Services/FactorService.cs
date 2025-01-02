@@ -9,46 +9,59 @@ namespace RiskConsult.Data.Services;
 
 public interface IFactorService : IEnumerable<IFactor>
 {
+	void ClearCache();
+
 	IFactor GetFactor( string nameOrDescription );
 
-	IFactor GetFactor( int FactorId );
+	IFactor GetFactor( int factorId );
 
-	double GetFactorCumulative( int FactorId, DateTime date );
+	double GetFactorCumulative( int factorId, DateTime date );
 
-	IEnumerable<double> GetFactorCumulative( int FactorId, IEnumerable<DateTime> dates );
+	IEnumerable<double> GetFactorCumulative( int factorId, IEnumerable<DateTime> dates );
 
-	double GetFactorReturn( int FactorId, DateTime date );
+	double GetFactorReturn( int factorId, DateTime date );
 
-	IEnumerable<double> GetFactorReturn( int FactorId, IEnumerable<DateTime> dates );
+	IEnumerable<double> GetFactorReturn( int factorId, IEnumerable<DateTime> dates );
 
 	/// <summary> Obtiene la entidad de un factor ajustandose a la fecha y tabla que se defina </summary>
 	/// <param name="FactorId"> ID del factor </param>
 	/// <param name="date"> Fecha de la entidad </param>
 	/// <returnsRepository> Entidad del factor para la fecha solicitada, si no existe regresa null </returnsRepository>
-	double GetFactorValue( int FactorId, DateTime date );
+	double GetFactorValue( int factorId, DateTime date );
 
 	/// <summary> Obtiene un enumerable de valores de un factor a partir de un enumerable de fechas </summary>
 	/// <param name="dates"> Enumerable de fechas de las que se quieren obtener los factores de riesgo </param>
 	/// <param name="FactorId"> Id del factor </param>
-	IEnumerable<double> GetFactorValue( int FactorId, IEnumerable<DateTime> dates );
+	IEnumerable<double> GetFactorValue( int factorId, IEnumerable<DateTime> dates );
 }
 
-internal class FactorService( IServiceProvider provider ) : IFactorService
+internal class FactorService : IFactorService
 {
 	private const string _mapGroup = "Factor";
 	private const int _tcGroup = 1;
 	private static readonly int[] _currencyFactors = [ 36, 44, 45, 62, 76, 79, 83, 87, 92, 93, 103, 107, 110, 329, 330, 332, 333, 334 ];
 	private static readonly int[] _volatilityFactors = [ 10056, 10057, 10101, 10102, 10103 ];
+
 	private readonly Dictionary<DateTime, Dictionary<int, double>> _cumulatives = [];
-	private readonly IFactorCumulativeRepository _cumulativesRepository = provider.GetRequiredService<IFactorCumulativeRepository>();
-	private readonly IMapStringRepository _mapStringRepository = provider.GetRequiredService<IMapStringRepository>();
+	private readonly IFactorCumulativeRepository _cumulativesRepository;
+	private readonly IMapStringRepository _mapStringRepository;
 	private readonly Dictionary<DateTime, Dictionary<int, double>> _returns = [];
-	private readonly IFactorReturnRepository _returnsRepository = provider.GetRequiredService<IFactorReturnRepository>();
-	private readonly ITcIntegerRepository _tcIntegerRepository = provider.GetRequiredService<ITcIntegerRepository>();
+	private readonly IFactorReturnRepository _returnsRepository;
+	private readonly ITcIntegerRepository _tcIntegerRepository;
 	private readonly Dictionary<DateTime, Dictionary<int, double>> _values = [];
-	private readonly IFactorValueRepository _valuesRepository = provider.GetRequiredService<IFactorValueRepository>();
-	private Dictionary<int, IFactor>? _factorStorage;
-	private Dictionary<int, IFactor> Factors => _factorStorage ??= GetFactorDictionary( _mapStringRepository, _tcIntegerRepository );
+	private readonly IFactorValueRepository _valuesRepository;
+
+	private Lazy<Dictionary<int, IFactor>> _factors;
+
+	public FactorService( IServiceProvider provider )
+	{
+		_cumulativesRepository = provider.GetRequiredService<IFactorCumulativeRepository>();
+		_mapStringRepository = provider.GetRequiredService<IMapStringRepository>();
+		_returnsRepository = provider.GetRequiredService<IFactorReturnRepository>();
+		_tcIntegerRepository = provider.GetRequiredService<ITcIntegerRepository>();
+		_valuesRepository = provider.GetRequiredService<IFactorValueRepository>();
+		_factors = new( () => GetFactorDictionary( _mapStringRepository, _tcIntegerRepository ) );
+	}
 
 	/// <summary> Limpia datos almacenados en el cache </summary>
 	public void ClearCache()
@@ -56,66 +69,71 @@ internal class FactorService( IServiceProvider provider ) : IFactorService
 		_returns.Clear();
 		_values.Clear();
 		_cumulatives.Clear();
-		_factorStorage = null;
+		_factors = new( () => GetFactorDictionary( _mapStringRepository, _tcIntegerRepository ) );
 	}
 
-	public IEnumerator<IFactor> GetEnumerator() => Factors.Values.GetEnumerator();
+	public IEnumerator<IFactor> GetEnumerator() => _factors.Value.Values.GetEnumerator();
 
-	IEnumerator IEnumerable.GetEnumerator() => Factors.Values.GetEnumerator();
+	IEnumerator IEnumerable.GetEnumerator() => _factors.Value.Values.GetEnumerator();
 
-	public IFactor GetFactor( int FactorId )
+	public IFactor GetFactor( int factorId )
 	{
-		return Factors[ FactorId ];
+		if ( _factors.Value.TryGetValue( factorId, out IFactor? factor ) )
+		{
+			return factor;
+		}
+
+		throw new KeyNotFoundException( $"Factor with ID {factorId} not found." );
 	}
 
 	/// <summary> Obtiene Factor a partir de su nombre o descripción </summary>
 	/// <param name="nameOrDescription"> nombre o descripción del factor </param>
 	public IFactor GetFactor( string nameOrDescription )
 	{
-		return Factors.Values.First( f =>
+		return _factors.Value.Values.FirstOrDefault( f =>
 			f.Name.Equals( nameOrDescription, StringComparison.InvariantCultureIgnoreCase ) ||
-			f.Description.Equals( nameOrDescription, StringComparison.InvariantCultureIgnoreCase ) );
+			f.Description.Equals( nameOrDescription, StringComparison.InvariantCultureIgnoreCase ) )
+			?? throw new KeyNotFoundException( $"Factor with name or description '{nameOrDescription}' not found." );
 	}
 
-	public double GetFactorCumulative( int FactorId, DateTime date )
+	public double GetFactorCumulative( int factorId, DateTime date )
 	{
-		return GetDateFactorValue( _cumulatives, _cumulativesRepository, FactorId, date );
+		return GetCachedFactorValue( _cumulatives, _cumulativesRepository, factorId, date );
 	}
 
-	public IEnumerable<double> GetFactorCumulative( int FactorId, IEnumerable<DateTime> dates )
+	public IEnumerable<double> GetFactorCumulative( int factorId, IEnumerable<DateTime> dates )
 	{
-		return dates.Select( date => GetFactorCumulative( FactorId, date ) );
+		return dates.Select( date => GetFactorCumulative( factorId, date ) );
 	}
 
-	public double GetFactorReturn( int FactorId, DateTime date )
+	public double GetFactorReturn( int factorId, DateTime date )
 	{
-		return GetDateFactorValue( _returns, _returnsRepository, FactorId, date );
+		return GetCachedFactorValue( _returns, _returnsRepository, factorId, date );
 	}
 
-	public IEnumerable<double> GetFactorReturn( int FactorId, IEnumerable<DateTime> dates )
+	public IEnumerable<double> GetFactorReturn( int factorId, IEnumerable<DateTime> dates )
 	{
-		return dates.Select( date => GetFactorReturn( FactorId, date ) );
+		return dates.Select( date => GetFactorReturn( factorId, date ) );
 	}
 
-	public double GetFactorValue( int FactorId, DateTime date )
+	public double GetFactorValue( int factorId, DateTime date )
 	{
-		return GetDateFactorValue( _values, _valuesRepository, FactorId, date );
+		return GetCachedFactorValue( _values, _valuesRepository, factorId, date );
 	}
 
-	public IEnumerable<double> GetFactorValue( int FactorId, IEnumerable<DateTime> dates )
+	public IEnumerable<double> GetFactorValue( int factorId, IEnumerable<DateTime> dates )
 	{
-		return dates.Select( date => GetFactorValue( FactorId, date ) );
+		return dates.Select( date => GetFactorValue( factorId, date ) );
 	}
 
-	private static double GetDateFactorValue( Dictionary<DateTime, Dictionary<int, double>> cache, IFactorRepository repository, int FactorId, DateTime date )
+	private static double GetCachedFactorValue( Dictionary<DateTime, Dictionary<int, double>> cache, IFactorRepository repository, int factorId, DateTime date )
 	{
 		if ( !cache.TryGetValue( date, out Dictionary<int, double>? dateValues ) )
 		{
-			dateValues = repository.GetFactorEntities( date ).ToDictionary( entity => ( int ) entity.FactorId, entity => entity.Value );
-			cache[ date ] = dateValues;
+			cache[ date ] = dateValues = repository.GetFactorEntities( date ).ToDictionary( e => ( int ) e.FactorId, e => e.Value );
 		}
 
-		return dateValues.TryGetValue( FactorId, out var value ) ? value : double.NaN;
+		return dateValues.TryGetValue( factorId, out var value ) ? value : double.NaN;
 	}
 
 	private static Dictionary<int, IFactor> GetFactorDictionary( IMapStringRepository mapStringRepository, ITcIntegerRepository tcIntegerRepository )

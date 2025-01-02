@@ -8,6 +8,8 @@ namespace RiskConsult.Data.Services;
 
 public interface IEventService
 {
+	void ClearCache();
+
 	Dictionary<EventId, double> GetHoldingEvents( int holdingId, DateTime date );
 
 	double GetPayoutByEvents( int holding, DateTime date, double price, CurrencyId holdingCurrency );
@@ -36,10 +38,10 @@ internal class EventService( IHoldingEventRepository eventsRepository ) : IEvent
 	/// <param name="price"> Precio del instrumento en la fecha </param>
 	/// <param name="fxValue"> Tipo de cambio en el que se encuentra el precio respecto a la moneda del instrumento </param>
 	/// <returns> Monto por concepto de eventos o 0 si no se encuentra nada </returns>
-	public double GetPayoutByEvents( int holding, DateTime date, double price, CurrencyId holdingCurrency )
+	public double GetPayoutByEvents( int holdingId, DateTime date, double price, CurrencyId holdingCurrency )
 	{
 		double payout = 0;
-		IEnumerable<IHoldingEventEntity> entities = GetEntities( holding ).Where( e => e.Date == date );
+		IEnumerable<IHoldingEventEntity> entities = GetEntities( holdingId ).Where( e => e.Date == date );
 		foreach ( IHoldingEventEntity entity in entities )
 		{
 			payout += GetEventValue( entity, price, holdingCurrency );

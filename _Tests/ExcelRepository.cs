@@ -12,6 +12,7 @@ public abstract class ExcelRepository<T>( ListObject table, IPropertyMap[] prope
 	private readonly IPropertyMap[] _pks = [ .. properties.Where( p => p.IsPrimaryKey ) ];
 	public IPropertyMap[] Properties { get; } = properties;
 	public string TableName { get; } = table.Name;
+	public IUnitOfWork UnitOfWork { get; }
 
 	public void Delete( params T[] entities )
 	{

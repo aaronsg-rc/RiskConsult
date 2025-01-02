@@ -11,6 +11,8 @@ public interface IHoldingService
 {
 	IReadOnlyDictionary<TypeId, IHoldingType> HoldingTypes { get; }
 
+	void ClearCache();
+
 	IEnumerable<IHoldingTerms> GetAll();
 
 	IHoldingTerms? GetHoldingTerms( string holdingId, HoldingIdType idType );
@@ -28,6 +30,13 @@ internal class HoldingService( ITcHoldingRepository tcHoldingRepository, ITcInte
 	private bool _allLoaded = false;
 	private Dictionary<TypeId, IHoldingType>? _types;
 	public IReadOnlyDictionary<TypeId, IHoldingType> HoldingTypes => _types ??= GetHoldingTypes( tcIntegerRepository );
+
+	public void ClearCache()
+	{
+		_terms.Clear();
+		_allLoaded = false;
+		_types = null;
+	}
 
 	public IEnumerable<IHoldingTerms> GetAll()
 	{

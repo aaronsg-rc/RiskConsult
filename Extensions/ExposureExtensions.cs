@@ -8,8 +8,8 @@ public static class ExposureExtensions
 {
 	public static IEnumerable<IFactorValue> GetExposures( this IHoldingIdProperty holdingId, DateTime date, int exposureId = 0 )
 	{
-		var exposures = DbZeus.Db.User?.Exposures.GetExposures( date, exposureId, holdingId.HoldingId );
-		if ( exposures?.Any() ?? false )
+		IFactorValue[]? exposures = DbZeus.Db.User?.Exposures.GetExposures( date, exposureId, holdingId.HoldingId );
+		if ( exposures != null && exposures.Length > 0 )
 		{
 			return exposures;
 		}

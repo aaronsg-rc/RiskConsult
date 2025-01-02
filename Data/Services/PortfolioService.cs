@@ -9,8 +9,6 @@ namespace RiskConsult.Data.Services;
 
 public interface IPortfolioService
 {
-	IPortfolio CreateNewPortfolio();
-
 	int GetNextId();
 
 	IPortfolio? GetPortfolio( DateTime date, string name );
@@ -22,33 +20,24 @@ public interface IPortfolioService
 	public void SavePortfolioToDatabase( IPortfolio portfolio );
 }
 
-internal class PortfolioService( IMapStringRepository mapStringRepository, IPortfolioRepository portfolioRepository, IUnitOfWork unitOfWork ) : IPortfolioService
+internal class PortfolioService( IMapStringRepository mapStringRepository, IPortfolioRepository portfolioRepository ) : IPortfolioService
 {
-	private readonly Dictionary<(DateTime, string), IPortfolio> _portfolios = [];
-
-	public IPortfolio CreateNewPortfolio()
-	{
-		return new Portfolio();
-	}
+	private const string _mapGroup = "Benchmark";
+	private readonly Dictionary<(DateTime, string), IPortfolio> _cache = [];
 
 	public int GetNextId()
 	{
-		return mapStringRepository.GetNextId( "Benchmark" );
+		return mapStringRepository.GetNextId( _mapGroup );
 	}
 
 	public IPortfolio? GetPortfolio( DateTime date, string name )
 	{
-		return GetPortfolio( date, name, PriceSourceId.Invalid, CurrencyId.Invalid );
-	}
-
-	public IPortfolio? GetPortfolio( DateTime date, string name, PriceSourceId sourceId, CurrencyId fxCurrency )
-	{
-		if ( _portfolios.TryGetValue( (date, name), out IPortfolio? portfolio ) )
+		if ( _cache.TryGetValue( (date, name), out var portfolio ) )
 		{
 			return portfolio.Clone();
 		}
 
-		IMapStringEntity? map = mapStringRepository.GetGroupEntity( "Benchmark", name );
+		IMapStringEntity? map = mapStringRepository.GetGroupEntity( _mapGroup, name );
 		if ( map == null )
 		{
 			return null;
@@ -59,47 +48,63 @@ internal class PortfolioService( IMapStringRepository mapStringRepository, IPort
 			Date = date,
 			PortfolioId = name,
 			Id = map.Id,
-			CurrencyId = fxCurrency,
-			PriceSourceId = sourceId
+			CurrencyId = CurrencyId.Invalid,
+			PriceSourceId = PriceSourceId.Invalid
 		};
 
 		IPortfolioEntity[] entities = portfolioRepository.GetPortfolioEntities( date, name );
 		foreach ( IPortfolioEntity entity in entities )
 		{
-			IHolding holding;
-			if ( sourceId != PriceSourceId.Invalid && fxCurrency != CurrencyId.Invalid )
-			{
-				holding = entity.GetHolding( date, sourceId, fxCurrency, entity.Value );
-			}
-			else
-			{
-				holding = entity.GetHolding( entity.Value );
-			}
-
+			IHolding holding = entity.GetHolding( entity.Value );
 			portfolio.Holdings.Add( holding );
 		}
 
-		_portfolios[ (date, name) ] = portfolio;
+		_cache[ (date, name) ] = portfolio;
 
 		return portfolio.Clone();
 	}
 
+	public IPortfolio? GetPortfolio( DateTime date, string name, PriceSourceId sourceId, CurrencyId fxCurrency )
+	{
+		IPortfolio? portfolio = GetPortfolio( date, name );
+		if ( portfolio == null )
+		{
+			return null;
+		}
+
+		portfolio.CurrencyId = fxCurrency;
+		portfolio.PriceSourceId = sourceId;
+		portfolio.LoadPrices( date, sourceId, fxCurrency );
+
+		return portfolio;
+	}
+
 	public int GetPortfolioId( string name )
 	{
-		return mapStringRepository.GetGroupEntity( "Benchmark", name )?.Id ?? -1;
+		return mapStringRepository.GetGroupEntity( _mapGroup, name )?.Id ?? -1;
 	}
 
 	public void SavePortfolioToDatabase( IPortfolio portfolio )
 	{
+		if ( portfolio.Id == -1 )
+		{
+			portfolio.Id = GetPortfolioId( portfolio.PortfolioId );
+		}
+
+		if ( portfolio.Id == -1 )
+		{
+			portfolio.Id = GetNextId();
+		}
+
 		var map = new MapStringEntity
 		{
 			Id = portfolio.Id,
-			GroupId = "Benchmark",
+			GroupId = _mapGroup,
 			Name = portfolio.PortfolioId,
 			Description = portfolio.PortfolioId
 		};
 
-		var ports = new List<PortfolioEntity>();
+		var holdings = new List<PortfolioEntity>();
 		foreach ( IHolding hold in portfolio.Holdings )
 		{
 			var holdEntity = new PortfolioEntity
@@ -110,29 +115,29 @@ internal class PortfolioService( IMapStringRepository mapStringRepository, IPort
 				Value = hold.Amount,
 			};
 
-			ports.Add( holdEntity );
+			holdings.Add( holdEntity );
 		}
 
-		unitOfWork.BeginTransaction();
-		mapStringRepository.Delete( "Benchmark", portfolio.Id );
-		mapStringRepository.Delete( "Benchmark", portfolio.PortfolioId );
+		portfolioRepository.UnitOfWork.BeginTransaction();
+		mapStringRepository.Delete( _mapGroup, portfolio.Id );
+		mapStringRepository.Delete( _mapGroup, portfolio.PortfolioId );
 		mapStringRepository.Insert( map );
 		portfolioRepository.Delete( portfolio.Date, portfolio.PortfolioId );
-		portfolioRepository.Insert( ports.ToArray() );
+		portfolioRepository.Insert( holdings.ToArray() );
 
-		using IDbCommand command = unitOfWork.CreateCommand();
+		using IDbCommand command = portfolioRepository.UnitOfWork.CreateCommand();
 		command.CommandText =
 			$"DELETE FROM tblDATA_PortfolioSettings where dteDate = @date and intPortfolioID = @id;" +
-			$"DELETE FROM tblParameter_Text WHERE txtGroup='Benchmark' and intID=@id;" +
-			$"DELETE FROM tblParameter_Float WHERE txtGroup='Benchmark' and intID=@id;" +
-			$"DELETE FROM tblParameter_Date WHERE txtGroup='Benchmark' and intID=@id;" +
-			$"DELETE FROM tblParameter_Integer WHERE txtGroup='Benchmark' and intID=@id;" +
-			$"DELETE FROM tblParameter_IntVector WHERE txtGroup='Benchmark' and intID=@id;" +
-			$"DELETE FROM tblParameter_DoubleVector WHERE txtGroup='Benchmark' and intID=@id;" +
-			$"DELETE FROM tblParameter_IntegerMap WHERE txtGroup='Benchmark' and intID=@id;" +
-			$"DELETE FROM tblParameter_DoubleMap WHERE txtGroup='Benchmark' and intID=@id;" +
+			$"DELETE FROM tblParameter_Text WHERE txtGroup='{_mapGroup}' and intID=@id;" +
+			$"DELETE FROM tblParameter_Float WHERE txtGroup='{_mapGroup}' and intID=@id;" +
+			$"DELETE FROM tblParameter_Date WHERE txtGroup='{_mapGroup}' and intID=@id;" +
+			$"DELETE FROM tblParameter_Integer WHERE txtGroup='{_mapGroup}' and intID=@id;" +
+			$"DELETE FROM tblParameter_IntVector WHERE txtGroup='{_mapGroup}' and intID=@id;" +
+			$"DELETE FROM tblParameter_DoubleVector WHERE txtGroup='{_mapGroup}' and intID=@id;" +
+			$"DELETE FROM tblParameter_IntegerMap WHERE txtGroup='{_mapGroup}' and intID=@id;" +
+			$"DELETE FROM tblParameter_DoubleMap WHERE txtGroup='{_mapGroup}' and intID=@id;" +
 			$"INSERT INTO tblDATA_PortfolioSettings values( @id, @date, 1.000000);" +
-			$"INSERT INTO tblParameter_Float values ( @id, 'Benchmark', 'AmountType', 0.000000)";
+			$"INSERT INTO tblParameter_Float values ( @id, '{_mapGroup}', 'AmountType', 0.000000)";
 
 		IDbDataParameter dateParam = command.CreateParameter();
 		dateParam.ParameterName = "@date";
@@ -145,6 +150,6 @@ internal class PortfolioService( IMapStringRepository mapStringRepository, IPort
 		command.Parameters.Add( idParam );
 
 		command.ExecuteNonQuery();
-		unitOfWork.Commit();
+		portfolioRepository.UnitOfWork.Commit();
 	}
 }

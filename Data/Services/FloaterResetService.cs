@@ -1,4 +1,6 @@
 ﻿using RiskConsult.Core;
+using RiskConsult.Data.Entities;
+using RiskConsult.Data.Interfaces;
 using RiskConsult.Data.Repositories;
 using RiskConsult.Enumerators;
 using RiskConsult.Extensions;
@@ -7,49 +9,41 @@ namespace RiskConsult.Data.Services;
 
 public interface IFloaterResetService
 {
-	double GetFloaterReset( int holdingId, DateTime date );
+	void ClearCache();
 
-	Dictionary<DateTime, double> GetFloaterResetCalendar( int holdingId );
+	double GetFloaterReset( IHoldingIdProperty holdingId, DateTime date );
 
-	public double GetPayoutByCoupon( IHoldingTerms tycs, DateTime date );
+	Dictionary<DateTime, double> GetFloaterResetCalendar( IHoldingIdProperty holdingId );
+
+	double GetPayoutByCoupon( IHoldingIdProperty holdingId, DateTime date );
 }
 
 internal class FloaterResetService( IFloaterResetRepository floaterResetRepository ) : IFloaterResetService
 {
-	private readonly Dictionary<int, Dictionary<DateTime, double>> _cache = [];
+	private readonly Dictionary<int, IFloaterResetEntity[]> _cache = [];
 
 	/// <summary> Limpia datos almacenados en cache </summary>
 	public void ClearCache() => _cache.Clear();
 
-	/// <summary> Obtiene la entidad para el ID y fecha solicitado </summary>
-	/// <param name="holdingId"> ID del instrumento </param>
-	/// <param name="date"> Fecha de la entidad </param>
-	/// <returns> Entidad encontrada o nulo si no existe </returns>
-	public double GetFloaterReset( int holdingId, DateTime date )
+	public double GetFloaterReset( IHoldingIdProperty holdingId, DateTime date )
 	{
-		return GetFloaterResetCalendar( holdingId ).GetValueOrDefault( date );
+		return GetFloaterResetEntities( holdingId.HoldingId ).FirstOrDefault( e => e.Date == date )?.Value ?? 0;
 	}
 
-	public Dictionary<DateTime, double> GetFloaterResetCalendar( int holdingId )
+	public Dictionary<DateTime, double> GetFloaterResetCalendar( IHoldingIdProperty holdingId )
 	{
-		if ( _cache.TryGetValue( holdingId, out Dictionary<DateTime, double>? calendar ) )
-		{
-			return calendar;
-		}
-
-		return _cache[ holdingId ] = floaterResetRepository
-			.GetFloaterResetEntities( holdingId )
-			.ToDictionary( entity => entity.Date, entity => entity.Value );
+		return GetFloaterResetEntities( holdingId.HoldingId ).ToDictionary( entity => entity.Date, entity => entity.Value );
 	}
 
-	public double GetPayoutByCoupon( IHoldingTerms tycs, DateTime date )
+	public double GetPayoutByCoupon( IHoldingIdProperty holdingId, DateTime date )
 	{
-		if ( tycs.HoldingId >= 2000000 || ( tycs.ModuleId != ModuleId.Fixed && tycs.ModuleId != ModuleId.Float ) )
+		IHoldingTerms tycs = holdingId as IHoldingTerms ?? holdingId.GetHoldingTerms();
+		if ( tycs.ModuleId is not ModuleId.Fixed and not ModuleId.Float )
 		{
 			return 0;
 		}
 
-		var coupon = DbZeus.Db.FloaterResets.GetFloaterReset( tycs.HoldingId, date );
+		var coupon = GetFloaterReset( tycs, date );
 		if ( coupon == 0 && tycs.ModuleId == ModuleId.Fixed )
 		{
 			coupon = tycs.GetPaymentCalendar( date ).Contains( date ) ? tycs.CouponRate : 0;
@@ -68,5 +62,15 @@ internal class FloaterResetService( IFloaterResetRepository floaterResetReposito
 		// Obtengo la amorización acumulada
 		var currentNominal = tycs.GetAmortizedNominalAt( date );
 		return currentNominal * coupon * intDays / 360;
+	}
+
+	private IFloaterResetEntity[] GetFloaterResetEntities( int holdingId )
+	{
+		if ( _cache.TryGetValue( holdingId, out IFloaterResetEntity[]? entities ) )
+		{
+			return entities;
+		}
+
+		return _cache[ holdingId ] = floaterResetRepository.GetFloaterResetEntities( holdingId );
 	}
 }

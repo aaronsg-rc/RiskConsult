@@ -14,6 +14,11 @@ public static class HoldingTermsExtensions
 
 	public static IHoldingTerms? GetHoldingTerms( this string holdingId, HoldingIdType idType )
 	{
+		if ( idType is HoldingIdType.HoldingId )
+		{
+			return GetHoldingTerms( Convert.ToInt32( holdingId ) );
+		}
+
 		return
 			DbZeus.Db.Holdings.GetHoldingTerms( holdingId, idType ) ??
 			DbZeus.Db.User?.Customs.GetHoldingTerms( holdingId, idType );

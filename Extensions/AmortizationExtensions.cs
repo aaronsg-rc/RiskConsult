@@ -1,7 +1,6 @@
 ﻿using RiskConsult.Core;
 using RiskConsult.Data;
 using RiskConsult.Data.Interfaces;
-using RiskConsult.Enumerators;
 
 namespace RiskConsult.Extensions;
 
@@ -11,40 +10,26 @@ public static class AmortizationExtensions
 	/// <returns> Nominal actualizado o 0 si no aplica </returns>
 	/// <summary> Obtiene el monto sobre el precio del instrumento que se debe pagar por concepto de amortización </summary>
 	/// <returns> Monto por concepto de amortización o 0 si no aplica </returns>
-	public static double GetAmortizedNominalAt( this IHoldingTerms terms, DateTime date )
-	{
-		if ( terms.HoldingId < 2000000 || terms.ModuleId is ModuleId.Fixed or ModuleId.Float or ModuleId.Float2 )
-		{
-			Dictionary<DateTime, double> calendar = DbZeus.Db.Amortizations.GetAmortizationCalendar( terms.HoldingId );
-			if ( calendar.Count > 0 )
-			{
-				return terms.Nominal * ( 1 - calendar.Where( kvp => kvp.Key < date ).Sum( kvp => kvp.Value ) );
-			}
-		}
-
-		return terms.Nominal;
-	}
-
 	public static double GetAmortizedNominalAt( this IHoldingIdProperty holdingId, DateTime date )
 	{
-		return holdingId.GetHoldingTerms().GetAmortizedNominalAt( date );
-	}
+		if ( holdingId.HoldingId >= 2000000 )
+		{
+			IHoldingTerms terms = holdingId as IHoldingTerms ?? holdingId.GetHoldingTerms();
+			return terms.Nominal;
+		}
 
-	public static double GetPayoutByAmortization( this IHoldingIdProperty holdingId, DateTime date )
-	{
-		return holdingId.GetHoldingTerms().GetPayoutByAmortization( date );
+		return DbZeus.Db.Amortizations.GetAmortizedNominalAt( holdingId, date );
 	}
 
 	/// <summary> Obtiene el monto sobre el precio del instrumento que se debe pagar por concepto de amortización </summary>
 	/// <returns> Monto por concepto de amortización o 0 si no aplica </returns>
-	public static double GetPayoutByAmortization( this IHoldingTerms terms, DateTime date )
+	public static double GetPayoutByAmortization( this IHoldingIdProperty holdingId, DateTime date )
 	{
-		if ( terms.HoldingId < 2000000 && terms.ModuleId is ModuleId.Fixed or ModuleId.Float or ModuleId.Float2 )
+		if ( holdingId.HoldingId >= 2000000 )
 		{
-			var amortization = DbZeus.Db.Amortizations.GetAmortizationPercent( terms.HoldingId, date );
-			return amortization * terms.Nominal;
+			return 0;
 		}
 
-		return 0;
+		return DbZeus.Db.Amortizations.GetPayoutByAmortization( holdingId, date );
 	}
 }

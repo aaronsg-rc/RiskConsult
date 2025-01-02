@@ -14,19 +14,17 @@ public static class FactorExtensions
 
 	public static IFactor GetFactor( this FactorId factorId )
 	{
-		return ( ( int ) factorId ).GetFactor();
+		return DbZeus.Db.Factors.GetFactor( ( int ) factorId );
+	}
+
+	public static IFactor GetFactor( this IFactorIdProperty factorId )
+	{
+		return factorId as IFactor ?? DbZeus.Db.Factors.GetFactor( ( int ) factorId.FactorId );
 	}
 
 	public static IFactor GetFactor( this string nameOrDescription )
 	{
-		return DbZeus.Db.Factors.First( f =>
-			f.Name.Equals( nameOrDescription, StringComparison.InvariantCultureIgnoreCase ) ||
-			f.Description.Equals( nameOrDescription, StringComparison.InvariantCultureIgnoreCase ) );
-	}
-
-	public static IFactor GetFactor( this IFactorIdProperty FactorId )
-	{
-		return DbZeus.Db.Factors.GetFactor( ( int ) FactorId.FactorId );
+		return DbZeus.Db.Factors.GetFactor( nameOrDescription );
 	}
 
 	public static double GetFactorCumulative( this IFactorIdProperty FactorId, DateTime date )

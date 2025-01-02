@@ -80,7 +80,7 @@ public static class CashFlowsCalculator
 	/// <returns> Lista de los cashflows </returns>
 	public static List<CashFlowDate> GetCashFlows( this IHoldingTerms tycs, DateTime date )
 	{
-		Dictionary<DateTime, double> couponCalendar = DbZeus.Db.FloaterResets.GetFloaterResetCalendar( tycs.HoldingId );
+		Dictionary<DateTime, double> couponCalendar = DbZeus.Db.FloaterResets.GetFloaterResetCalendar( tycs );
 		List<DateTime> calendar = GetPaymentCalendar( date, tycs.Maturity, tycs.PayFrequency, tycs.PeriodId.ToDateUnit(),
 			tycs.PayDay, tycs.WeekDayAdjust );
 		ITermStructure curve = tycs.GetTermStructure( date );

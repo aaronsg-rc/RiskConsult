@@ -25,7 +25,7 @@ public static class PortfolioExtensions
 	public static void SaveToDatabase( this IPortfolio portfolio )
 	{
 		ArgumentNullException.ThrowIfNull( DbZeus.Db.User, nameof( DbZeus.Db.User ) );
-		DbZeus.Db.User?.Portfolios.SavePortfolioToDatabase( portfolio );
+		DbZeus.Db.User.Portfolios.SavePortfolioToDatabase( portfolio );
 	}
 
 	/// <summary> Establece la cantidad de títulos de cada instrumento dentro del portafolio a partir de los títulos </summary>

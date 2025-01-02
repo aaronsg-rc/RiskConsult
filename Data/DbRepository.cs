@@ -5,6 +5,8 @@ namespace RiskConsult.Data;
 
 public interface IRepository<TEntity>
 {
+	IUnitOfWork UnitOfWork { get; }
+
 	void Delete( params TEntity[] entities );
 
 	TImplementation[] GetAll<TImplementation>() where TImplementation : TEntity, new();
@@ -14,13 +16,11 @@ public interface IRepository<TEntity>
 	void Update( params TEntity[] entities );
 }
 
-internal abstract class DbRepository<TEntity> : IRepository<TEntity>, ITableMap
+public abstract class DbRepository<TEntity> : IRepository<TEntity>, ITableMap
 {
-	public readonly IUnitOfWork UnitOfWork;
-
 	public abstract IPropertyMap[] Properties { get; }
-
 	public abstract string TableName { get; }
+	public IUnitOfWork UnitOfWork { get; }
 
 	public DbRepository( IUnitOfWork unitOfWork )
 	{

@@ -5,6 +5,8 @@ namespace RiskConsult.Data.Services;
 
 public interface IPriceService
 {
+	void ClearCache();
+
 	/// <summary> Obtiene el precio de un instrumento para una fecha y tipo de precio dado </summary>
 	/// <param name="holdingId"> ID del instrumento del que se requiere el precio </param>
 	/// <param name="date"> Fecha del precio </param>

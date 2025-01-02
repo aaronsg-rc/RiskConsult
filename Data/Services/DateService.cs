@@ -10,6 +10,8 @@ public interface IDateService
 
 	DateTime StartDate { get; }
 
+	void ClearCache();
+
 	IEnumerable<DateTime> GetBusinessDays();
 
 	DateTime GetBusinessEndOfMonth( DateTime date );
@@ -43,7 +45,7 @@ public interface IDateService
 	bool IsHoliday( DateTime date );
 }
 
-internal class DateService( IBusinessDaysRepository businessRepository, IHolidaysRepository holidaysRepository, IUnitOfWork unitOfWork ) : IDateService
+internal class DateService( IBusinessDaysRepository businessRepository, IHolidaysRepository holidaysRepository ) : IDateService
 {
 	private DateTime[]? _business;
 	private DateTime[]? _holidays;
@@ -152,23 +154,9 @@ internal class DateService( IBusinessDaysRepository businessRepository, IHoliday
 
 	public IEnumerable<DateTime> GetHolidays() => Holidays;
 
-	public DateTime GetZeusEndDate()
-	{
-		using IDbCommand command = unitOfWork.CreateCommand();
-		command.CommandText = $"SELECT dteEndDate FROM tblDates";
+	public DateTime GetZeusEndDate() => businessRepository.GetZeusEndDate();
 
-		DateRec? entity = command.GetEntity<DateRec>( [ new PropertyMap<DateRec>( nameof( DateRec.Date ), "dteEndDate" ) ] );
-		return entity?.Date ?? DateTime.MaxValue;
-	}
-
-	public DateTime GetZeusStartDate()
-	{
-		using IDbCommand command = unitOfWork.CreateCommand();
-		command.CommandText = $"SELECT dteStartDate FROM tblDates";
-
-		DateRec? entity = command.GetEntity<DateRec>( [ new PropertyMap<DateRec>( nameof( DateRec.Date ), "dteStartDate" ) ] );
-		return entity?.Date ?? DateTime.MinValue;
-	}
+	public DateTime GetZeusStartDate() => businessRepository.GetZeusStartDate();
 
 	public bool IsBusinessDay( DateTime date )
 	{

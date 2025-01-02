@@ -9,6 +9,7 @@ public class CsvRepository<T>( string filePath, IEnumerable<IPropertyMap> proper
 	private readonly bool _hasHeaders = hasHeaders;
 	private readonly IPropertyMap[] _pks = [ .. properties.Where( p => p.IsPrimaryKey ) ];
 	public IEnumerable<IPropertyMap> Properties { get; } = properties;
+	public IUnitOfWork UnitOfWork { get; }
 
 	public void Delete( params T[] entities )
 	{
