@@ -81,6 +81,7 @@ public static class ArrayOperations
 
 	/// <summary> Obtengo la matriz de covarianzas para los valores contenidos en la matriz </summary>
 	/// <param name="values"> Matrix de la cual se quiere extraer la matriz de covarianzas </param>
+	/// <param name="lambda"> Factor de decaimiento opcional, por defecto es 1 </param>
 	public static double[,] GetCovarianceMatrix( this double[,] values )
 	{
 		// Defino dimensiones de mi matriz de covarianzas
@@ -99,6 +100,75 @@ public static class ArrayOperations
 		}
 
 		return results;
+	}
+
+	/// <summary> Calcula la matriz de covarianzas utilizando el método de decaimiento exponencial EWMA. </summary> <param name="returns">Matriz de
+	/// rendimientos (filas: períodos, columnas: activos).</param> <param name="lambda">Factor de suavizado exponencial (0 < lambda < 1).</param>
+	/// <returns>Matriz de covarianzas calculada como double[,].</returns>
+	public static double[,] GetCovarianceMatrix( this double[,] returns, double lambda )
+	{
+		if ( lambda is <= 0 or > 1 )
+		{
+			throw new ArgumentException( "Lambda debe estar en el rango (0, 1].", nameof( lambda ) );
+		}
+		else if ( lambda == 1 )
+		{
+			return GetCovarianceMatrix( returns );
+		}
+
+		var nRows = returns.GetLength( 0 ); // Número de filas (observaciones)
+		var nCols = returns.GetLength( 1 ); // Número de columnas (activos)
+		var covarianceMatrix = new double[ nCols, nCols ]; // Inicializar matriz de covarianzas
+		var weight = 1.0; // Peso inicial para el período más reciente
+		var weightedMeans = new double[ nCols ]; // Medias ponderadas
+		var weightSum = 0.0; // Suma de los pesos
+
+		// Calcular medias ponderadas
+		for ( var i = nRows - 1; i >= 0; i-- )
+		{
+			weightSum += weight;
+			for ( var j = 0; j < nCols; j++ )
+			{
+				weightedMeans[ j ] += weight * returns[ i, j ];
+			}
+
+			weight *= lambda;
+		}
+
+		for ( var j = 0; j < nCols; j++ )
+		{
+			weightedMeans[ j ] /= weightSum;
+		}
+
+		// Calcular matriz de covarianzas desde el más reciente (última fila) al más antiguo (primera fila)
+		weight = 1.0;
+		for ( var i = nRows - 1; i >= 0; i-- )
+		{
+			for ( var j = 0; j < nCols; j++ )
+			{
+				for ( var k = j; k < nCols; k++ )
+				{
+					covarianceMatrix[ j, k ] += weight * ( returns[ i, j ] - weightedMeans[ j ] ) * ( returns[ i, k ] - weightedMeans[ k ] );
+				}
+			}
+
+			weight *= lambda;
+		}
+
+		// Normalizar por la suma de pesos y llenar la parte inferior de la matriz
+		for ( var j = 0; j < nCols; j++ )
+		{
+			for ( var k = j; k < nCols; k++ )
+			{
+				covarianceMatrix[ j, k ] /= weightSum;
+				if ( j != k )
+				{
+					covarianceMatrix[ k, j ] = covarianceMatrix[ j, k ];
+				}
+			}
+		}
+
+		return covarianceMatrix;
 	}
 
 	/// <summary> Obtengo la varianza de mi matriz dado un vector de ponderaciones/exposiciones, la matriz debe ser una matriz de rendimientos </summary>
