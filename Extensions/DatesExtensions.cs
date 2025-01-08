@@ -20,6 +20,11 @@ public static class DatesExtensions
 			throw new Exception( $"Invalid interval '{interval}'" );
 	}
 
+	public static DateTime[] GetBusinessBetween( this DateTime start, DateTime end )
+	{
+		return DbZeus.Db.Dates.GetBusinessPeriod( start, end ).ToArray();
+	}
+
 	/// <summary> Agrega un periodo de tiempo a una fecha dada </summary>
 	/// <param name="date"> Fecha inicial </param>
 	/// <param name="interval"> Intervalo de tiempo que se agregará a la fecha, "d", "m", "y" </param>

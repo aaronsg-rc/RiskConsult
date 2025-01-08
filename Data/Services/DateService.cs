@@ -71,7 +71,7 @@ internal class DateService( IBusinessDaysRepository businessRepository, IHoliday
 
 	public DateTime GetBusinessEndOfWeek( DateTime date )
 	{
-		DateTime dteWeekEnd = date;
+		DateTime dteWeekEnd = date.Date;
 		while ( dteWeekEnd.DayOfWeek != DayOfWeek.Sunday )
 		{
 			dteWeekEnd = dteWeekEnd.AddDays( 1 );
@@ -82,7 +82,7 @@ internal class DateService( IBusinessDaysRepository businessRepository, IHoliday
 
 	public IEnumerable<DateTime> GetBusinessLastDaysFrom( DateTime date, int numberOfDays )
 	{
-		var index = Array.BinarySearch( Business, date );
+		var index = Array.BinarySearch( Business, date.Date );
 		index = index >= 0 ? index : ~index - 1;
 		for ( var i = 0; i < numberOfDays && index >= 0; i++, index-- )
 		{
@@ -92,14 +92,14 @@ internal class DateService( IBusinessDaysRepository businessRepository, IHoliday
 
 	public DateTime GetBusinessNextDay( DateTime date )
 	{
-		var index = Array.BinarySearch( Business, date );
+		var index = Array.BinarySearch( Business, date.Date );
 		index = index >= 0 ? index + 1 : ~index;
 		return index < Business.Length ? Business[ index ] : throw new InvalidOperationException( "No next business day found." );
 	}
 
 	public DateTime GetBusinessNextOrEqualsDay( DateTime date )
 	{
-		var index = Array.BinarySearch( Business, date );
+		var index = Array.BinarySearch( Business, date.Date );
 		if ( index >= 0 )
 		{
 			return Business[ index ];
@@ -111,19 +111,19 @@ internal class DateService( IBusinessDaysRepository businessRepository, IHoliday
 
 	public IEnumerable<DateTime> GetBusinessPeriod( DateTime start, DateTime end )
 	{
-		return GetDateRange( Business, start, end );
+		return GetDateRange( Business, start.Date, end.Date );
 	}
 
 	public DateTime GetBusinessPreviousDay( DateTime date )
 	{
-		var index = Array.BinarySearch( Business, date );
+		var index = Array.BinarySearch( Business, date.Date );
 		index = index >= 0 ? index - 1 : ~index - 1;
 		return index >= 0 ? Business[ index ] : throw new InvalidOperationException( "No previous business day found." );
 	}
 
 	public DateTime GetBusinessPreviousOrEqualsDay( DateTime date )
 	{
-		var index = Array.BinarySearch( Business, date );
+		var index = Array.BinarySearch( Business, date.Date );
 		if ( index >= 0 )
 		{
 			return Business[ index ];
@@ -142,7 +142,7 @@ internal class DateService( IBusinessDaysRepository businessRepository, IHoliday
 	public DateTime GetBusinessStartOfWeek( DateTime date )
 	{
 		// Obtengo día inicial de la semana
-		DateTime dteWeekStart = date;
+		DateTime dteWeekStart = date.Date;
 		while ( dteWeekStart.DayOfWeek != DayOfWeek.Monday )
 		{
 			dteWeekStart = dteWeekStart.AddDays( -1 );
@@ -165,15 +165,15 @@ internal class DateService( IBusinessDaysRepository businessRepository, IHoliday
 			return false;
 		}
 
-		return Array.BinarySearch( Business, date ) >= 0;
+		return Array.BinarySearch( Business, date.Date ) >= 0;
 	}
 
-	public bool IsHoliday( DateTime date ) => Array.BinarySearch( Holidays, date ) >= 0;
+	public bool IsHoliday( DateTime date ) => Array.BinarySearch( Holidays, date.Date ) >= 0;
 
 	private static IEnumerable<DateTime> GetDateRange( DateTime[] dates, DateTime start, DateTime end )
 	{
-		var startIndex = Array.BinarySearch( dates, start );
-		var endIndex = Array.BinarySearch( dates, end );
+		var startIndex = Array.BinarySearch( dates, start.Date );
+		var endIndex = Array.BinarySearch( dates, end.Date );
 
 		if ( startIndex < 0 )
 		{
@@ -187,13 +187,10 @@ internal class DateService( IBusinessDaysRepository businessRepository, IHoliday
 
 		for ( var i = startIndex; i <= endIndex && i < dates.Length; i++ )
 		{
-			if ( dates[ i ] >= start && dates[ i ] <= end )
+			if ( dates[ i ] >= start.Date && dates[ i ] <= end.Date )
 			{
 				yield return dates[ i ];
 			}
 		}
 	}
-
-	private class DateRec
-	{ public DateTime Date { get; set; } }
 }
