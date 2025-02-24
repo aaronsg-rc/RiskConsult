@@ -40,8 +40,17 @@ public class ReturnData : IReturnData
 		Date = date;
 		InitialValue = initialValue;
 		FinalValue = finalValue;
-		ReturnPercent = double.IsNaN( initialValue ) || initialValue == 0 || double.IsNaN( finalValue ) || finalValue == 0 ? double.NaN : ( finalValue / initialValue ) - 1;
-		ReturnValue = finalValue - initialValue;
+
+		if ( initialValue == 0 || finalValue == 0 )
+		{
+			ReturnPercent = double.NaN;
+			ReturnValue = 0;
+		}
+		else
+		{
+			ReturnPercent = ( finalValue / initialValue ) - 1;
+			ReturnValue = finalValue - initialValue;
+		}
 	}
 
 	public ReturnData( DateTime date, double initialValue, double finalValue, double returnPercent, double returnValue )

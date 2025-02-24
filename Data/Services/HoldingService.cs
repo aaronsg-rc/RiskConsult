@@ -1,5 +1,6 @@
 ﻿using RiskConsult.Core;
 using RiskConsult.Data.Entities;
+using RiskConsult.Data.Interfaces;
 using RiskConsult.Data.Repositories;
 using RiskConsult.Enumerators;
 using System.Collections.Concurrent;
@@ -7,11 +8,9 @@ using System.Reflection;
 
 namespace RiskConsult.Data.Services;
 
-public interface IHoldingService
+public interface IHoldingService : ICachedService
 {
 	IReadOnlyDictionary<TypeId, IHoldingType> HoldingTypes { get; }
-
-	void ClearCache();
 
 	IEnumerable<IHoldingTerms> GetAll();
 
@@ -20,9 +19,11 @@ public interface IHoldingService
 	IHoldingTerms GetHoldingTerms( int holdingId );
 
 	List<IHoldingTerms> GetHoldingTermsBySubType( SubTypeId subTypeId );
+
+	bool IsHoldingAlive( int holdingID, DateTime date );
 }
 
-internal class HoldingService( ITcHoldingRepository tcHoldingRepository, ITcIntegerRepository tcIntegerRepository ) : IHoldingService
+internal class HoldingService( ITcHoldingRepository tcHoldingRepository, ITcIntegerRepository tcIntegerRepository, IMapHoldingRepository mapHoldingRepository ) : IHoldingService
 {
 	private const int _tcTypeGroup = 0;
 	private readonly ConcurrentDictionary<int, IHoldingTerms> _terms = [];
@@ -111,6 +112,17 @@ internal class HoldingService( ITcHoldingRepository tcHoldingRepository, ITcInte
 		return termsList;
 	}
 
+	public bool IsHoldingAlive( int holdingID, DateTime date )
+	{
+		IMapHoldingEntity? mapHold = mapHoldingRepository.GetHoldingEntity( holdingID.ToString(), HoldingIdType.HoldingId );
+		if ( mapHold == null )
+		{
+			return false;
+		}
+
+		return mapHold.InitialDate <= date && mapHold.FinalDate >= date;
+	}
+
 	/// <summary> Crea términos y agrega a cache a partir de base de datos </summary>
 	private IHoldingTerms CreateAndAddHoldingTerms( ITcHoldingEntity tycs )
 	{
@@ -130,7 +142,7 @@ internal class HoldingService( ITcHoldingRepository tcHoldingRepository, ITcInte
 			CountryId = tycs.CountryId == null ? CountryId.Invalid : ( CountryId ) tycs.CountryId,
 			CurrencyId = tycs.CurrencyId == null ? CurrencyId.Invalid : ( CurrencyId ) tycs.CurrencyId,
 			Issue = tycs.Issue == null ? DateTime.MinValue : ( DateTime ) tycs.Issue,
-			Maturity = tycs.Maturity == null ? DateTime.MinValue : ( DateTime ) tycs.Maturity,
+			Maturity = tycs.Maturity == null ? DateTime.MaxValue : ( DateTime ) tycs.Maturity,
 			CouponRate = tycs.CouponRate == null ? 0.0 : ( double ) tycs.CouponRate,
 			Nominal = tycs.Nominal == null ? double.NaN : ( double ) tycs.Nominal,
 			Strike = tycs.Strike == null ? double.NaN : ( double ) tycs.Strike,
