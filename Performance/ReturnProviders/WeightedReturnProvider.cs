@@ -1,4 +1,4 @@
-﻿namespace RiskConsult.Performance.Providers;
+﻿namespace RiskConsult.Performance.ReturnProviders;
 
 public class WeightedReturnProvider( IDateWeightProvider weightProvider, IDateReturnPercentProvider returnProvider ) : IDateWeightedReturnProvider
 {

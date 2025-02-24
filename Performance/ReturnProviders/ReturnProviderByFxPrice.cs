@@ -1,7 +1,7 @@
 ﻿using RiskConsult.Core;
 using RiskConsult.Enumerators;
 
-namespace RiskConsult.Performance.Providers;
+namespace RiskConsult.Performance.ReturnProviders;
 
 public class ReturnProviderByFxPrice : ReturnProvider
 {

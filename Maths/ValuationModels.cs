@@ -66,7 +66,7 @@ public static class ValuationModels
 
 			// Obtengo la fecha ajustada a dias habiles de pago de cupón
 			dtePay = weekendDayAdjust > 0
-				? dteCalendar.GetNextOrEqualsBusinessDay()
+				? dteCalendar.GetBusinessNextOrEqualsDay()
 				: dteCalendar.GetBusinessPreviousOrEqualsDay();
 
 			//Agrego

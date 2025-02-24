@@ -2,19 +2,19 @@
 using RiskConsult.Enumerators;
 using RiskConsult.Extensions;
 
-namespace RiskConsult.Performance.Providers;
+namespace RiskConsult.Performance.ReturnProviders;
 
 public class ReturnProviderByFactor( IFactor factor ) : ReturnProvider
 {
 	protected override IReturnData CalculateReturn( DateTime date )
 	{
 		DateTime prevDate = date.GetBusinessDateAdd( DateUnit.Day, -1 );
-		var prevValue = factor.GetFactorValue( prevDate );
-		var value = factor.GetFactorValue( date );
+		var initialValue = factor.GetFactorValue( prevDate );
+		var finalValue = factor.GetFactorValue( date );
 		return new ReturnData( date,
-			prevValue,
-			value,
+			initialValue,
+			finalValue,
 			factor.GetFactorReturn( date ),
-			value - prevValue );
+			finalValue - initialValue );
 	}
 }

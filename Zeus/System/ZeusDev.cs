@@ -32,7 +32,10 @@ public class ZeusDev : IDisposable
 
 	~ZeusDev() => Dispose();
 
-	public void CloseDocument( int portfolioID ) => ComObject.CloseDocument( portfolioID );
+	public void CloseDocument( int portfolioID )
+	{
+		ComObject.CloseDocument( portfolioID );
+	}
 
 	public void Dispose()
 	{
@@ -45,13 +48,25 @@ public class ZeusDev : IDisposable
 		GC.SuppressFinalize( this );
 	}
 
-	public object GetPortfolioAnalytic( int portfolioID, string analyticID ) => ComObject.GetPortfolioAnalytic( portfolioID, analyticID ) ?? string.Empty;
+	public object GetPortfolioAnalytic( int portfolioID, string analyticID )
+	{
+		return ComObject.GetPortfolioAnalytic( portfolioID, analyticID ) ?? string.Empty;
+	}
 
-	public object GetSecurityAnalytic( int portfolioID, string holdingId, ZeusIdType idType, string analyticID ) => ComObject.GetSecurityAnalytic( portfolioID, holdingId, idType.GetName(), analyticID ) ?? string.Empty;
+	public object GetSecurityAnalytic( int portfolioID, string holdingId, ZeusIdType idType, string analyticID )
+	{
+		return ComObject.GetSecurityAnalytic( portfolioID, holdingId, idType.GetName(), analyticID ) ?? string.Empty;
+	}
 
-	public string GetSecurityCode( int portfolioID, ZeusIdType idType, int holdingIndex ) => ( string ) ComObject.GetSecurityCode( portfolioID, idType.GetName(), holdingIndex ) ?? string.Empty;
+	public string GetSecurityCode( int portfolioID, ZeusIdType idType, int holdingIndex )
+	{
+		return ( string ) ComObject.GetSecurityCode( portfolioID, idType.GetName(), holdingIndex ) ?? string.Empty;
+	}
 
-	public int OpenDocument( string portfolioName, int portfolioSource ) => ComObject.OpenDocument( portfolioName, portfolioSource );
+	public int OpenDocument( string portfolioName, int portfolioSource )
+	{
+		return ComObject.OpenDocument( portfolioName, portfolioSource );
+	}
 
 	private static dynamic InitializeZeusDev( Type type )
 	{

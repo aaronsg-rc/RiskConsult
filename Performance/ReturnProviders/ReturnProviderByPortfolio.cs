@@ -3,7 +3,7 @@ using RiskConsult.Data;
 using RiskConsult.Enumerators;
 using RiskConsult.Extensions;
 
-namespace RiskConsult.Performance.Providers;
+namespace RiskConsult.Performance.ReturnProviders;
 
 public class ReturnProviderByPortfolio( string name, CurrencyId fxCurrency, PriceSourceId sourceID ) : ReturnProvider
 {

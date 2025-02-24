@@ -13,7 +13,7 @@ public static class ExceptionManager
 
 	public static void ThrowIfFileNotFound( string? path )
 	{
-		if ( File.Exists( path ) == false )
+		if ( !File.Exists( path ) )
 		{
 			throw new FileNotFoundException( "File not found", Path.GetFileName( path ) );
 		}

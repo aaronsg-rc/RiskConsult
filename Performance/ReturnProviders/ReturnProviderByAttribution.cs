@@ -1,4 +1,4 @@
-﻿namespace RiskConsult.Performance.Providers;
+﻿namespace RiskConsult.Performance.ReturnProviders;
 
 public class ReturnProviderByAttribution( IReturnProvider originProvider, IReturnProvider totalProvider, IEnumerable<IReturnProvider> contributionProviders ) : ReturnProvider
 {

@@ -10,6 +10,8 @@ public class FileLogger : BaseLogger, ILogger
 
 	protected override LogLevel LogLevel { get; }
 
+	private object? _lock;
+
 	public FileLogger( string categoryName, string filePath, LogLevel logLevel )
 	{
 		CategoryName = categoryName;
@@ -19,9 +21,12 @@ public class FileLogger : BaseLogger, ILogger
 
 	public override void LogLevelAction( LogLevel logLevel, string message )
 	{
-		if ( logLevel != LogLevel.None )
+		lock ( _lock! )
 		{
-			File.AppendAllText( _logPath, message + Environment.NewLine );
+			if ( logLevel != LogLevel.None )
+			{
+				File.AppendAllText( _logPath, message + Environment.NewLine );
+			}
 		}
 	}
 }

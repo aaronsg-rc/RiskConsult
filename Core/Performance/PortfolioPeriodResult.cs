@@ -31,7 +31,7 @@ public class PortfolioPeriodResult
 		PortfolioID = portfolio;
 		SourceID = sourceID;
 		FxCurrencyId = fxCurrency;
-		DateStart = start.GetNextOrEqualsBusinessDay();
+		DateStart = start.GetBusinessNextOrEqualsDay();
 		DateEnd = end.GetBusinessPreviousOrEqualsDay();
 
 		// Obtengo los resultados por cada día hábil

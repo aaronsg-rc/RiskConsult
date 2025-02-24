@@ -33,7 +33,7 @@ public static class DatesExtensions
 	public static DateTime GetBusinessDateAdd( this DateTime date, DateUnit interval, int value )
 	{
 		DateTime dteTemp = date.Add( interval, value );
-		return value < 0 ? dteTemp.GetBusinessPreviousOrEqualsDay() : dteTemp.GetNextOrEqualsBusinessDay();
+		return value < 0 ? dteTemp.GetBusinessPreviousOrEqualsDay() : dteTemp.GetBusinessNextOrEqualsDay();
 	}
 
 	/// <summary> Obtiene el último día habil del mes de la fecha ingresada </summary>
@@ -94,7 +94,7 @@ public static class DatesExtensions
 	/// <summary> Obtiene la fecha hábil mayor o igual que la fecha base </summary>
 	/// <param name="date"> Fecha base </param>
 	/// <returns> Fecha hábil mayor o igual que la fecha base </returns>
-	public static DateTime GetNextOrEqualsBusinessDay( this DateTime date )
+	public static DateTime GetBusinessNextOrEqualsDay( this DateTime date )
 	{
 		return DbZeus.Db.Dates.GetBusinessNextOrEqualsDay( date );
 	}

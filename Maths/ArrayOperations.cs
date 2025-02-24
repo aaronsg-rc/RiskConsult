@@ -103,8 +103,8 @@ public static class ArrayOperations
 	}
 
 	/// <summary> Calcula la matriz de covarianzas utilizando el método de decaimiento exponencial EWMA. </summary> <param name="returns">Matriz de
-	/// rendimientos (filas: períodos, columnas: activos).</param> <param name="lambda">Factor de suavizado exponencial (0 < lambda < 1).</param>
-	/// <returns>Matriz de covarianzas calculada como double[,].</returns>
+	/// rendimientos desde el más antiguo (primera fila) al más reciente (última fila) </param> <param name="lambda">Factor de suavizado exponencial
+	/// (0 < lambda < 1).</param> <returns>Matriz de covarianzas calculada como double[,].</returns>
 	public static double[,] GetCovarianceMatrix( this double[,] returns, double lambda )
 	{
 		if ( lambda is <= 0 or > 1 )

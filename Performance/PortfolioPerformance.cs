@@ -1,6 +1,6 @@
 ﻿using RiskConsult.Core;
 using RiskConsult.Enumerators;
-using RiskConsult.Performance.Providers;
+using RiskConsult.Performance.ReturnProviders;
 
 namespace RiskConsult.Performance;
 

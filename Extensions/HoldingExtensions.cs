@@ -1,4 +1,5 @@
 ﻿using RiskConsult.Core;
+using RiskConsult.Data;
 using RiskConsult.Data.Interfaces;
 using RiskConsult.Enumerators;
 
@@ -40,5 +41,10 @@ public static class HoldingExtensions
 		holding.LoadPrice( date, sourceId, fxCurrency );
 
 		return holding;
+	}
+
+	public static bool IsAlive( this IHoldingIdProperty holdingIdProperty, DateTime date )
+	{
+		return DbZeus.Db.Holdings.IsHoldingAlive( holdingIdProperty.HoldingId, date );
 	}
 }
