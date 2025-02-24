@@ -1,11 +1,12 @@
 ﻿using RiskConsult.Core;
 using RiskConsult.Data.Entities;
+using RiskConsult.Data.Interfaces;
 using RiskConsult.Data.Repositories;
 using RiskConsult.Enumerators;
 
 namespace RiskConsult.Data.Services;
 
-public interface ITermStructureService
+public interface ITermStructureService : ICachedService
 {
 	public ITermStructure GetTermStructure( DateTime date, TermStructureId TermStructureId );
 }
@@ -15,6 +16,12 @@ internal class TermStructureService( ITermStructureRepository termStructureRepos
 	private const string _mapGroup = "TermStructure";
 	private readonly Dictionary<(DateTime, TermStructureId), ITermStructure> _termStructures = [];
 	private Dictionary<TermStructureId, IMapStringEntity> _names = [];
+
+	public void ClearCache()
+	{
+		_termStructures.Clear();
+		_names.Clear();
+	}
 
 	public ITermStructure GetTermStructure( DateTime date, TermStructureId termStructureId )
 	{

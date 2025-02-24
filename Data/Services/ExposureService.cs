@@ -1,14 +1,13 @@
 ﻿using RiskConsult.Core;
 using RiskConsult.Data.Entities;
+using RiskConsult.Data.Interfaces;
 using RiskConsult.Data.Repositories;
 using RiskConsult.Extensions;
 
 namespace RiskConsult.Data.Services;
 
-public interface IExposureService
+public interface IExposureService : ICachedService
 {
-	void ClearCache();
-
 	public IFactorValue[] GetExposures( DateTime date, int exposureId, int holdingId );
 }
 
@@ -27,7 +26,7 @@ internal class ExposureService( IExposureRepository exposureRepository ) : IExpo
 
 	private IExposureEntity[] GetExposureEntities( DateTime date, int exposureId, int holdingId )
 	{
-		if ( _cache.TryGetValue( (date, exposureId, holdingId), out var exposures ) )
+		if ( _cache.TryGetValue( (date, exposureId, holdingId), out IExposureEntity[]? exposures ) )
 		{
 			return exposures;
 		}

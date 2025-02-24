@@ -1,16 +1,15 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RiskConsult.Core;
 using RiskConsult.Data.Entities;
+using RiskConsult.Data.Interfaces;
 using RiskConsult.Data.Repositories;
 using RiskConsult.Enumerators;
 using System.Collections;
 
 namespace RiskConsult.Data.Services;
 
-public interface IFactorService : IEnumerable<IFactor>
+public interface IFactorService : IEnumerable<IFactor>, ICachedService
 {
-	void ClearCache();
-
 	IFactor GetFactor( string nameOrDescription );
 
 	IFactor GetFactor( int factorId );

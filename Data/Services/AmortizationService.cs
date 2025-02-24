@@ -6,10 +6,8 @@ using RiskConsult.Extensions;
 
 namespace RiskConsult.Data.Services;
 
-public interface IAmortizationService
+public interface IAmortizationService : ICachedService
 {
-	void ClearCache();
-
 	Dictionary<DateTime, double> GetAmortizationCalendar( IHoldingIdProperty holdingId );
 
 	double GetAmortizationPercent( IHoldingIdProperty holdingId, DateTime date );
@@ -48,7 +46,7 @@ internal class AmortizationService : IAmortizationService
 
 	public double GetAmortizedNominalAt( IHoldingIdProperty holdingId, DateTime date )
 	{
-		var terms = holdingId as IHoldingTerms ?? holdingId.GetHoldingTerms();
+		IHoldingTerms terms = holdingId as IHoldingTerms ?? holdingId.GetHoldingTerms();
 		if ( terms.ModuleId is ModuleId.Fixed or ModuleId.Float or ModuleId.Float2 )
 		{
 			Dictionary<DateTime, double> calendar = GetAmortizationCalendar( terms.HoldingId );

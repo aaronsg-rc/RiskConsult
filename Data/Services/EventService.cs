@@ -1,4 +1,5 @@
 ﻿using RiskConsult.Data.Entities;
+using RiskConsult.Data.Interfaces;
 using RiskConsult.Data.Repositories;
 using RiskConsult.Enumerators;
 using RiskConsult.Extensions;
@@ -6,10 +7,8 @@ using System.Data;
 
 namespace RiskConsult.Data.Services;
 
-public interface IEventService
+public interface IEventService : ICachedService
 {
-	void ClearCache();
-
 	Dictionary<EventId, double> GetHoldingEvents( int holdingId, DateTime date );
 
 	double GetPayoutByEvents( int holding, DateTime date, double price, CurrencyId holdingCurrency );

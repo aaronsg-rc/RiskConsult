@@ -1,6 +1,5 @@
 ﻿using RiskConsult.Core;
 using RiskConsult.Data.Entities;
-using RiskConsult.Data.Interfaces;
 using RiskConsult.Data.Repositories;
 using RiskConsult.Enumerators;
 using RiskConsult.Extensions;

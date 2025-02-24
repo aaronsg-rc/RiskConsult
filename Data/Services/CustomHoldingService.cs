@@ -1,15 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RiskConsult.Core;
 using RiskConsult.Data.Entities;
+using RiskConsult.Data.Interfaces;
 using RiskConsult.Data.Repositories;
 using RiskConsult.Enumerators;
 
 namespace RiskConsult.Data.Services;
 
-public interface ICustomHoldingService
+public interface ICustomHoldingService : ICachedService
 {
-	void ClearCache();
-
 	IEnumerable<IHoldingTerms> GetAll();
 
 	IHoldingTerms GetHoldingTerms( int holdingId );

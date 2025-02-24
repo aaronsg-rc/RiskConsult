@@ -1,5 +1,6 @@
 ﻿using RiskConsult.Core;
 using RiskConsult.Data.Entities;
+using RiskConsult.Data.Interfaces;
 using RiskConsult.Data.Repositories;
 using RiskConsult.Enumerators;
 using RiskConsult.Extensions;
@@ -7,7 +8,7 @@ using System.Data;
 
 namespace RiskConsult.Data.Services;
 
-public interface IPortfolioService
+public interface IPortfolioService : ICachedService
 {
 	int GetNextId();
 
@@ -25,6 +26,8 @@ internal class PortfolioService( IMapStringRepository mapStringRepository, IPort
 	private const string _mapGroup = "Benchmark";
 	private readonly Dictionary<(DateTime, string), IPortfolio> _cache = [];
 
+	public void ClearCache() => _cache.Clear();
+
 	public int GetNextId()
 	{
 		return mapStringRepository.GetNextId( _mapGroup );
@@ -32,7 +35,7 @@ internal class PortfolioService( IMapStringRepository mapStringRepository, IPort
 
 	public IPortfolio? GetPortfolio( DateTime date, string name )
 	{
-		if ( _cache.TryGetValue( (date, name), out var portfolio ) )
+		if ( _cache.TryGetValue( (date, name), out IPortfolio? portfolio ) )
 		{
 			return portfolio.Clone();
 		}

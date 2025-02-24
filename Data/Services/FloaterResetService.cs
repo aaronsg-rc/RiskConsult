@@ -7,10 +7,8 @@ using RiskConsult.Extensions;
 
 namespace RiskConsult.Data.Services;
 
-public interface IFloaterResetService
+public interface IFloaterResetService : ICachedService
 {
-	void ClearCache();
-
 	double GetFloaterReset( IHoldingIdProperty holdingId, DateTime date );
 
 	Dictionary<DateTime, double> GetFloaterResetCalendar( IHoldingIdProperty holdingId );
