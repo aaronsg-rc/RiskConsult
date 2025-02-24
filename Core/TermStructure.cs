@@ -21,5 +21,5 @@ public class TermStructure : ITermStructure
 	public TermStructureId TermStructureId { get; set; } = TermStructureId.Invalid;
 	public double[] Values { get; set; } = [];
 
-	public double GetTermValue( int term ) => Calculator.LinearInterpolation( term, Terms, Values );
+	public double GetTermValue( int term ) => term == 0 ? 0 : Calculator.LinearInterpolation( term, Terms, Values );
 }

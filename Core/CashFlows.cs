@@ -28,16 +28,17 @@ public static class CashFlowsCalculator
 		var cashFlows = new List<CashFlowDate>();
 		foreach ( DateTime flowDate in payCalendar )
 		{
-			var daysToFlow = flowDate.Subtract( discountCurve.Date ).Days;
-			var discountRate = discountCurve.GetTermValue( daysToFlow );
+			var days = flowDate.Subtract( discountCurve.Date ).Days;
+			var rate = discountCurve.GetTermValue( days );
+			var df = Math.Exp( -rate * days / 360.0 );
 			var flowValue = nominal * couponRate * freqYearly;
 			if ( flowDate == maturity )
 			{
 				flowValue += nominal;
 			}
 
-			var presentValue = flowValue / Math.Pow( 1.0 + discountRate, daysToFlow / 360.0 );
-			cashFlows.Add( new CashFlowDate( flowDate, daysToFlow, discountRate, flowValue, presentValue ) );
+			var presentValue = flowValue * df;
+			cashFlows.Add( new CashFlowDate( flowDate, days, rate, flowValue, presentValue ) );
 		}
 
 		return cashFlows;
@@ -146,7 +147,7 @@ public static class CashFlowsCalculator
 
 			// Obtengo la fecha ajustada a dias habiles de pago de cupón
 			dtePay = weekendDayAdjust > 0
-				? dteCalendar.GetNextOrEqualsBusinessDay()
+				? dteCalendar.GetBusinessNextOrEqualsDay()
 				: dteCalendar.GetBusinessPreviousOrEqualsDay();
 
 			//Agrego
@@ -166,12 +167,22 @@ public static class CashFlowsCalculator
 	/// <param name="csZeus"> Cadena de conexión a base de datos de Zeus </param>
 	/// <returns> Valor presente del instrumento o 0 si su fecha de valuación no es válida </returns>
 	public static double GetPresentValue( this Holding holding, DateTime date )
-		=> GetPresentValue( holding.Terms, date );
+	{
+		return GetPresentValue( holding.Terms, date );
+	}
 
 	/// <summary> Obtiene el valor presente basado en los términos y condiciones </summary>
 	/// <param name="tycs"> Términos y condiciones del instrumento </param>
 	/// <param name="date"> Fecha de valuación </param>
 	/// <param name="csZeus"> Cadena de conexión a base de datos de Zeus </param>
 	/// <returns> Valor presente del instrumento o 0 si su fecha de valuación no es válida </returns>
-	public static double GetPresentValue( this IHoldingTerms tycs, DateTime date ) => tycs.Maturity < date ? 0 : tycs.GetCashFlows( date ).Sum( c => c.PresentValue );
+	public static double GetPresentValue( this IHoldingTerms tycs, DateTime date )
+	{
+		if ( tycs.Issue > date || tycs.Maturity < date )
+		{
+			return 0;
+		}
+
+		return tycs.GetCashFlows( date ).Sum( c => c.PresentValue );
+	}
 }

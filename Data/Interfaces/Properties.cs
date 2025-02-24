@@ -194,7 +194,10 @@ public interface IPayDayProperty
 	/// <summary> Fecha de pago </summary>
 	public int PayDay { get; set; }
 }
-
+public interface ISpreadProperty
+{
+	public double Spread { get; set; }
+}
 public interface IPayFrequencyProperty
 {
 	/// <summary> Frecuencia de pago </summary>
