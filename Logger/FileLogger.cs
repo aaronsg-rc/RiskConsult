@@ -10,23 +10,25 @@ public class FileLogger : BaseLogger, ILogger
 
 	protected override LogLevel LogLevel { get; }
 
-	private object? _lock;
+	private readonly object _lock = new object();
 
 	public FileLogger( string categoryName, string filePath, LogLevel logLevel )
 	{
-		CategoryName = categoryName;
+		_logPath = filePath ?? throw new ArgumentNullException( nameof( filePath ) );
+		CategoryName = categoryName ?? throw new ArgumentNullException( nameof( categoryName ) );
 		LogLevel = logLevel;
-		_logPath = filePath;
 	}
 
 	public override void LogLevelAction( LogLevel logLevel, string message )
 	{
-		lock ( _lock! )
+		if ( logLevel == LogLevel.None || string.IsNullOrWhiteSpace( message ) )
 		{
-			if ( logLevel != LogLevel.None )
-			{
-				File.AppendAllText( _logPath, message + Environment.NewLine );
-			}
+			return;
+		}
+
+		lock ( _lock ) // Bloqueo para evitar concurrencia en escritura
+		{
+			File.AppendAllText( _logPath, message + Environment.NewLine );
 		}
 	}
 }
