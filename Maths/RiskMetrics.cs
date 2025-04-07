@@ -40,7 +40,7 @@ public static class RiskMetrics
 	/// <returns> El valor del VaR paramétrico EWMA. </returns>
 	public static double CalculateParametricVarEWMA( double[,] returns, double[] weights, double lambda, double confidence, double specificRisk )
 	{
-		var n = returns.GetLength( 0 ); // Número de activos
+		var n = returns.GetLength( 1 ); // Número de activos
 
 		if ( weights.Length != n )
 		{

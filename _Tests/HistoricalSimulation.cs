@@ -1,5 +1,5 @@
-﻿using RiskConsult.Extensions;
-using RiskConsult.Maths;
+﻿using MathNet.Numerics.Statistics;
+using RiskConsult.Extensions;
 using System.Globalization;
 
 namespace RiskConsult._Tests;
@@ -136,7 +136,7 @@ public class HistoricalSimulation : List<HistoricalSimulationZeusRow>
 			.Select( Convert.ToDouble )
 			.OrderBy( v => v )
 			.ToArray()
-			.Percentile( 1 - confidence );
+			.Quantile( 1 - confidence );
 	}
 
 	public Dictionary<DateTime, double> GetWorstScenarios( int compoundedPeriod = 1, int rollWindow = 66, int worstDates = 10 )

@@ -1,5 +1,5 @@
-﻿using RiskConsult.Extensions;
-using RiskConsult.Maths;
+﻿using MathNet.Numerics.Statistics;
+using RiskConsult.Extensions;
 using System.Data;
 
 namespace RiskConsult._Tests;

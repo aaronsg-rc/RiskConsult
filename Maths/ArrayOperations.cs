@@ -1,4 +1,5 @@
-﻿using RiskConsult.Extensions;
+﻿using MathNet.Numerics.Statistics;
+using RiskConsult.Extensions;
 using System.Numerics;
 
 namespace RiskConsult.Maths;
@@ -70,7 +71,7 @@ public static class ArrayOperations
 		{
 			for ( var j = i; j < size; j++ )
 			{
-				var correlation = i == j ? 1 : Statistics.Correlation( values.GetColumn( i ), values.GetColumn( j ) );
+				var correlation = i == j ? 1 : Correlation.Pearson( values.GetColumn( i ), values.GetColumn( j ) );
 				results[ i, j ] = correlation;
 				results[ j, i ] = correlation;
 			}

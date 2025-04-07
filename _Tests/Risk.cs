@@ -1,4 +1,5 @@
-﻿using RiskConsult.Core;
+﻿using MathNet.Numerics.Statistics;
+using RiskConsult.Core;
 using RiskConsult.Data;
 using RiskConsult.Extensions;
 using RiskConsult.Maths;
@@ -22,7 +23,7 @@ public static class Risk
 	}
 
 	public static double GetHistoricalVaR( IEnumerable<double> returns, double alpha )
-		=> returns.Percentile( 1 - alpha );
+		=> returns.Quantile( 1 - alpha );
 
 	public static double GetParametricVaR( double[,] returns, IEnumerable<double> weights, double alpha )
 		=> GetParametricVaR( returns, weights, alpha, 1, 1 );

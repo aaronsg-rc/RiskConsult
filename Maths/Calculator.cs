@@ -1,4 +1,5 @@
-﻿using RiskConsult.Extensions;
+﻿using MathNet.Numerics.Statistics;
+using RiskConsult.Extensions;
 using System.Numerics;
 
 namespace RiskConsult.Maths;
@@ -7,6 +8,11 @@ public static class Calculator
 {
 	public static double CalculateBeta( double[] indexReturns, double[] stockReturns )
 	{
+		if ( indexReturns.Length != stockReturns.Length )
+		{
+			throw new InvalidOperationException( "Returns must be of same size" );
+		}
+
 		var indexVariance = indexReturns.Variance();
 		var covariance = indexReturns.Covariance( stockReturns );
 		var beta = covariance / indexVariance;

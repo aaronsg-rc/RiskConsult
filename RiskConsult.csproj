@@ -29,15 +29,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
+		<PackageReference Include="MathNet.Numerics" Version="5.0.0" CopyToOutputDirectory="PreserveNewest" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" CopyToOutputDirectory="PreserveNewest">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.2" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.2" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.2" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" CopyToOutputDirectory="PreserveNewest" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.2" CopyToOutputDirectory="PreserveNewest" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.2" CopyToOutputDirectory="PreserveNewest" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.2" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>
